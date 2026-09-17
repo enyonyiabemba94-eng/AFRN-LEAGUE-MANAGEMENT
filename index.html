@@ -5,13 +5,19 @@
 <title>AFRN LEAGUE MANAGEMENT</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div class="brand">⚽ AFRN LEAGUE MANAGEMENT</div><div class="sub">Mfumo wa usimamizi wa ligi na mashindano mbalimbali za AFRN</div></header>
+<header class="topbar">
+  <div class="brand">⚽ AFRN</div>
+  <div><strong>LEAGUE MANAGEMENT</strong><small>Live football centre</small></div>
+</header>
+<nav class="topnav"><a class="active" href="index.html">Michezo</a><a href="#competitions">Mashindano</a><a href="#teams">Timu</a><a href="#stats">Stats</a></nav>
 <main>
-<section class="hero"><div><h1>Ligi na Mashindano</h1><p>Kila ligi inaweza kutambua daraja lake; mashindano kama <b>Upendo wa Wakimbizi Cup</b> yana mfumo wa makundi na mtoano.</p></div><button id="newLeague">＋ Ligi/Mashindano Mpya</button></section>
-<section class="master-tools"><div><h2>🏟️ Daftari la Timu</h2><p>Ongeza timu pamoja na daraja lake. Timu za ligi huchujwa kwa daraja.</p></div><button id="newTeam">＋ Ongeza Timu</button></section>
-<section id="leagues" class="grid"></section>
+<section class="hero-fm"><div><span class="eyebrow">AFRN FOOTBALL CENTRE</span><h1>Ligi na Mashindano</h1><p>Ratiba, matokeo, msimamo, timu, wafungaji, kadi na takwimu katika mfumo mmoja.</p></div><button id="newLeague">＋ Ligi/Mashindano</button></section>
+<section class="quick-tabs"><button class="quick active">Leo</button><button class="quick">Jana</button><button class="quick">Kesho</button><button class="quick">Zote</button></section>
+<section id="competitions"><div class="section-head"><div><span class="eyebrow">COMPETITIONS</span><h2>Ligi & Mashindano</h2></div><button class="secondary" id="newTeam">＋ Timu</button></div><div id="leagues" class="competition-grid"></div></section>
+<section id="teams" class="card compact"><div class="section-head"><div><span class="eyebrow">MASTER TEAMS</span><h2>Daftari la Timu</h2></div></div><p class="muted">Kila timu ina daraja lake. Ligi itaonyesha timu za daraja husika pekee.</p></section>
+<section id="stats" class="stats-strip"><div><b>⚽</b><span>Wafungaji</span></div><div><b>🟨</b><span>Kadi</span></div><div><b>📊</b><span>Statistics</span></div><div><b>📚</b><span>Historia</span></div></section>
 </main>
-<div id="modal" class="modal hidden"><div class="dialog"><button class="close" id="close">×</button><h2>Unda Ligi/Mashindano</h2><label>Jina<input id="leagueName" placeholder="Mfano: Upendo wa Wakimbizi Cup"></label><label>Aina<select id="competitionType"><option value="League">Ligi</option><option value="Tournament">Mashindano / Cup</option></select></label><label>Daraja linaloruhusiwa<select id="leagueDivision"><option value="Ligi Kuu">Ligi Kuu</option><option value="Daraja la I">Daraja la I</option><option value="Daraja la II">Daraja la II</option><option value="Daraja la III">Daraja la III</option><option value="Open">Open / Mchanganyiko</option></select></label><label>Msimu<input id="season" value="2026/2027"></label><button id="save">Hifadhi</button></div></div>
+<div id="modal" class="modal hidden"><div class="dialog"><button class="close" id="close">×</button><h2>Unda Ligi/Mashindano</h2><label>Jina<input id="leagueName" placeholder="Mfano: Ligi Kuu"></label><label>Aina<select id="competitionType"><option value="League">Ligi</option><option value="Tournament">Mashindano / Cup</option></select></label><label>Daraja linaloruhusiwa<select id="leagueDivision"><option value="Ligi Kuu">Ligi Kuu</option><option value="Daraja la I">Daraja la I</option><option value="Daraja la II">Daraja la II</option><option value="Daraja la III">Daraja la III</option><option value="Open">Open / Mchanganyiko</option></select></label><label>Msimu<input id="season" value="2026/2027"></label><button id="save">Hifadhi</button></div></div>
 <div id="teamModal" class="modal hidden"><div class="dialog"><button class="close" id="teamClose">×</button><h2>Ongeza Timu</h2><label>Jina la timu<input id="teamName" placeholder="Mfano: GHI1 BILOMBE FC"></label><label>Daraja<select id="teamDivision"><option value="Ligi Kuu">Ligi Kuu</option><option value="Daraja la I">Daraja la I</option><option value="Daraja la II">Daraja la II</option><option value="Daraja la III">Daraja la III</option></select></label><label>Kanda/Zoni<input id="teamZone" placeholder="Mfano: Zone 3"></label><button id="teamSave">Hifadhi Timu</button></div></div>
 <script src="app.js"></script>
 </body></html>
