@@ -5,16 +5,13 @@
 <title>AFRN LEAGUE MANAGEMENT</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div class="brand">⚽ AFRN LEAGUE MANAGEMENT</div><div class="sub">Mfumo wa usimamizi wa ligi mbalimbali za AFRN</div></header>
+<header><div class="brand">⚽ AFRN LEAGUE MANAGEMENT</div><div class="sub">Mfumo wa usimamizi wa ligi na mashindano mbalimbali za AFRN</div></header>
 <main>
-<section class="hero"><div><h1>Ligi Zangu</h1><p>Kila timu ina <b>daraja lake</b>. Mfumo utaonyesha timu za daraja linalolingana na ligi husika.</p></div><button id="newLeague">＋ Ligi Mpya</button></section>
-<section class="master-tools">
-  <div><h2>🏟️ Daftari la Timu</h2><p>Ongeza timu pamoja na daraja lake. Timu itaonekana kwenye ligi yake tu.</p></div>
-  <button id="newTeam">＋ Ongeza Timu</button>
-</section>
+<section class="hero"><div><h1>Ligi na Mashindano</h1><p>Kila ligi inaweza kutambua daraja lake; mashindano kama <b>Upendo wa Wakimbizi Cup</b> yana mfumo wa makundi na mtoano.</p></div><button id="newLeague">＋ Ligi/Mashindano Mpya</button></section>
+<section class="master-tools"><div><h2>🏟️ Daftari la Timu</h2><p>Ongeza timu pamoja na daraja lake. Timu za ligi huchujwa kwa daraja.</p></div><button id="newTeam">＋ Ongeza Timu</button></section>
 <section id="leagues" class="grid"></section>
 </main>
-<div id="modal" class="modal hidden"><div class="dialog"><button class="close" id="close">×</button><h2>Unda Ligi Mpya</h2><label>Jina la ligi<input id="leagueName" placeholder="Mfano: Ligi Kuu"></label><label>Msimu<input id="season" value="2026/2027"></label><button id="save">Hifadhi Ligi</button></div></div>
+<div id="modal" class="modal hidden"><div class="dialog"><button class="close" id="close">×</button><h2>Unda Ligi/Mashindano</h2><label>Jina<input id="leagueName" placeholder="Mfano: Upendo wa Wakimbizi Cup"></label><label>Aina<select id="competitionType"><option value="League">Ligi</option><option value="Tournament">Mashindano / Cup</option></select></label><label>Daraja linaloruhusiwa<select id="leagueDivision"><option value="Ligi Kuu">Ligi Kuu</option><option value="Daraja la I">Daraja la I</option><option value="Daraja la II">Daraja la II</option><option value="Daraja la III">Daraja la III</option><option value="Open">Open / Mchanganyiko</option></select></label><label>Msimu<input id="season" value="2026/2027"></label><button id="save">Hifadhi</button></div></div>
 <div id="teamModal" class="modal hidden"><div class="dialog"><button class="close" id="teamClose">×</button><h2>Ongeza Timu</h2><label>Jina la timu<input id="teamName" placeholder="Mfano: GHI1 BILOMBE FC"></label><label>Daraja<select id="teamDivision"><option value="Ligi Kuu">Ligi Kuu</option><option value="Daraja la I">Daraja la I</option><option value="Daraja la II">Daraja la II</option><option value="Daraja la III">Daraja la III</option></select></label><label>Kanda/Zoni<input id="teamZone" placeholder="Mfano: Zone 3"></label><button id="teamSave">Hifadhi Timu</button></div></div>
 <script src="app.js"></script>
 </body></html>
