@@ -1,0 +1,17 @@
+const SUPABASE_URL='https://jjqhvruppafpumcthmwe.supabase.co';
+const SUPABASE_KEY='sb_publishable_02hhRG8bgDOqSFxva8IMvQ_zWTLMa3G';
+const headers={apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`};
+const $=id=>document.getElementById(id);
+let allRows=[],clubs=[],players=[],matches=[],competitions=[];
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+async function api(table,params=''){const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`,{headers});if(!r.ok)throw new Error(`${table}: ${r.status}`);return r.json();}
+function norm(v){return String(v||'').toLowerCase().replace(/[-\s]/g,'_');}
+function eventStat(type){const t=norm(type);if(t.includes('yellow'))return'yellow';if(t.includes('red'))return'red';if(t==='goal'||t.includes('goal_'))return'goals';if(t.includes('assist'))return'assists';return null;}
+function playerName(id){const p=players.find(x=>String(x.id)===String(id));return p?.name||p?.full_name||p?.jina||`Player ${id}`;}
+function clubName(id){const c=clubs.find(x=>String(x.id)===String(id));return c?.name||c?.short_name||`Team ${id}`;}
+function competitionName(m){const c=competitions.find(x=>String(x.id)===String(m?.competition_id));return c?.name||c?.title||'';}
+function competitionMatches(){const f=$('competitionFilter').value;if(f==='all')return matches;return matches.filter(m=>competitionName(m).toLowerCase()===f.toLowerCase() || String(m?.competition||'').toLowerCase()===f.toLowerCase());}
+function aggregate(){const allowed=new Set(competitionMatches().map(m=>String(m.id)));const map=new Map();for(const e of allRows){if(!allowed.has(String(e.match_id)))continue;const s=eventStat(e.event_type);if(!s||!e.player_id)continue;const key=String(e.player_id);if(!map.has(key))map.set(key,{id:key,name:playerName(e.player_id),team:clubName(e.club_id),clubId:e.club_id,goals:0,assists:0,yellow:0,red:0});map.get(key)[s]++;}return [...map.values()];}
+function render(){const stat=document.querySelector('#statTabs .active')?.dataset.stat||'goals';const q=$('playerSearch').value.trim().toLowerCase();let rows=aggregate().filter(x=>x.name.toLowerCase().includes(q)||x.team.toLowerCase().includes(q)).sort((a,b)=>(b[stat]-a[stat])||a.name.localeCompare(b.name));$('statsStatus').textContent=rows.length?`${rows.length} wachezaji`:'Hakuna data iliyorekodiwa kwa kichujio hiki.';$('scorersList').innerHTML=rows.map((x,i)=>`<div class="stat-row"><span class="stat-rank">${i+1}</span><div class="stat-player"><a href="player.html?id=${encodeURIComponent(x.id)}"><strong>${esc(x.name)}</strong></a><a class="muted" href="team.html?id=${encodeURIComponent(x.clubId)}">${esc(x.team)}</a></div><strong class="stat-number">${x[stat]}</strong></div>`).join('');}
+async function load(){try{[clubs,players,matches,competitions,allRows]=await Promise.all([api('clubs','select=*'),api('players','select=*'),api('matches','select=*'),api('competitions','select=*'),api('match_events','select=*')]);render();}catch(e){$('statsStatus').textContent='Data haikupatikana: '+e.message;}}
+document.querySelectorAll('#statTabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#statTabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');render();}));$('competitionFilter').addEventListener('change',render);$('playerSearch').addEventListener('input',render);load();
