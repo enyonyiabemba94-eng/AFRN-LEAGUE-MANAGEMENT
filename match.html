@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AFRN Match Centre</title><link rel="stylesheet" href="style.css">
-<style>.live-pill{display:inline-block;margin:12px auto 0;padding:7px 12px;border-radius:999px;background:#b42318;color:#fff;font-size:11px;font-weight:900;letter-spacing:.2px}.match-hero{text-align:center}.match-hero .match-teams{text-align:center}.lineup-side .empty{background:#f7f8fa}.live-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px}.realtime-state{display:inline-block;margin-top:12px;padding:6px 10px;border-radius:999px;background:#eef2f6;color:#475467;font-size:10px;font-weight:800}.realtime-state.connected{background:#ecfdf3;color:#027a48}.realtime-state.fallback{background:#fff7ed;color:#b54708}.realtime-state.connecting{background:#fffaeb;color:#b54708}</style>
+<style>
+.live-pill{display:inline-block;margin:12px auto 0;padding:7px 12px;border-radius:999px;background:#b42318;color:#fff;font-size:11px;font-weight:900;letter-spacing:.2px}.match-hero{text-align:center}.match-hero .match-teams{text-align:center}.lineup-side .empty{background:#f7f8fa}.live-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px}.realtime-state{display:inline-block;margin-top:12px;padding:6px 10px;border-radius:999px;background:#eef2f6;color:#475467;font-size:10px;font-weight:800}.realtime-state.connected{background:#ecfdf3;color:#027a48}.realtime-state.fallback{background:#fff7ed;color:#b54708}.realtime-state.connecting{background:#fffaeb;color:#b54708}
+.afrn-stat-card{border:1px solid #e4e8ee;border-radius:12px;overflow:hidden;margin-top:12px}.afrn-stat-head,.afrn-stat-row{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:8px;align-items:center}.afrn-stat-head{padding:10px;background:#f4f6f9;color:#697487;font-size:10px;font-weight:900;text-align:center}.afrn-stat-row{padding:11px;border-top:1px solid #edf0f3}.afrn-stat-value{text-align:center;font-weight:900;font-size:13px}.afrn-stat-label{text-align:center;color:#657184;font-size:11px}.afrn-possession{margin:14px 0}.afrn-pos-head{display:grid;grid-template-columns:1fr 2fr 1fr;gap:8px;text-align:center;font-size:13px}.afrn-pos-head span{font-size:11px;color:#657184;font-weight:800}.afrn-pos-bar{height:8px;background:#e8edf3;border-radius:99px;overflow:hidden;margin-top:8px}.afrn-pos-bar i{display:block;height:100%;background:#1473e6;border-radius:99px}
+</style>
 </head>
 <body>
 <header><div class="brand">⚽ AFRN MATCH CENTRE</div><div class="sub">Taarifa kamili ya mchezo • Live</div></header>
@@ -11,4 +14,5 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.supabase=window.supabase.createClient('https://jjqhvruppafpumcthmwe.supabase.co','sb_publishable_02hhRG8bgDOqSFxva8IMvQ_zWTLMa3G');</script>
 <script src="match.js"></script>
+<script src="match-stats.js"></script>
 </body></html>
