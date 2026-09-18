@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AFRN Football Centre — Akaunti</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar"><div class="brand">⚽ AFRN</div><div><strong>FOOTBALL CENTRE</strong><small>Akaunti ya mtumiaji</small></div></header>
+<main class="auth-main">
+<section class="auth-shell">
+<div class="auth-brand">⚽ <b>AFRN FOOTBALL CENTRE</b><span>Live football • Ligi • Timu • Wachezaji</span></div>
+<div id="authMessage" class="auth-message hidden" aria-live="polite"></div>
+<div id="loginPanel">
+<h1>Ingia</h1><p class="muted">Ingia ili uhifadhi timu, wachezaji na ligi unazofuatilia.</p>
+<form id="loginForm"><label>Email<input id="loginEmail" type="email" autocomplete="email" required placeholder="email@example.com"></label><label>Password<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></label><button id="loginBtn" type="submit">🔐 Ingia</button></form>
+<button class="auth-link" id="forgotBtn" type="button">Umesahau password?</button><button class="auth-link" id="signupShow" type="button">Huna akaunti? Jisajili</button>
+</div>
+<div id="signupPanel" class="hidden"><h1>Jisajili</h1><p class="muted">Tengeneza akaunti yako ya AFRN Football Centre.</p>
+<form id="signupForm"><label>Jina<input id="signupName" autocomplete="name" required placeholder="Jina lako"></label><label>Email<input id="signupEmail" type="email" autocomplete="email" required placeholder="email@example.com"></label><label>Password<input id="signupPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Angalau herufi 6"></label><button id="signupBtn" type="submit">➕ Jisajili</button></form>
+<button class="auth-link" id="loginShow" type="button">← Rudi kwenye Login</button>
+</div>
+<div id="forgotPanel" class="hidden"><h1>Reset password</h1><p class="muted">Tuma link ya kubadilisha password kwenye email yako.</p>
+<form id="forgotForm"><label>Email<input id="forgotEmail" type="email" autocomplete="email" required placeholder="email@example.com"></label><button id="forgotSubmit" type="submit">📩 Tuma link</button></form>
+<button class="auth-link" id="forgotBack" type="button">← Rudi kwenye Login</button>
+</div>
+<div id="accountPanel" class="hidden"><div class="account-avatar">👤</div><h1 id="accountName">Akaunti</h1><p id="accountEmail" class="muted"></p><div class="account-actions"><a class="open" href="index.html">⚽ Endelea Football Centre</a><button id="logoutBtn" class="secondary" type="button">🚪 Toka</button></div></div>
+</section>
+</main>
+<script src="auth.js"></script>
+</body></html>
