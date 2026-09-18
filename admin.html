@@ -46,7 +46,11 @@
         <label>Dakika<input id="eventMinute" type="number" min="0" max="200" inputmode="numeric" placeholder="Mfano 67"></label>
         <label>Timu<select id="eventClub"><option value="">Chagua timu...</option></select></label>
         <label>Mchezaji<select id="eventPlayer"><option value="">Chagua mchezaji...</option></select></label>
-        <label>Maelezo<input id="eventDescription" maxlength="240" placeholder="Hiari; kwa substitution unaweza kuandika OUT → IN"></label>
+        <div id="substitutionPlayers" class="hidden">
+          <label>Anayetoka (OUT)<select id="eventPlayerOut"><option value="">Chagua mchezaji...</option></select></label>
+          <label>Anayeingia (IN)<select id="eventPlayerIn"><option value="">Chagua mchezaji...</option></select></label>
+        </div>
+        <label>Maelezo<input id="eventDescription" maxlength="240" placeholder="Hiari"></label>
         <button id="addEvent">＋ Ongeza Tukio</button>
         <div id="eventMsg" class="empty" style="margin-top:10px"></div>
       </div>
