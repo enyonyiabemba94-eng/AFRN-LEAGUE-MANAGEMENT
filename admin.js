@@ -38,6 +38,20 @@ async function loadEventPlayers(){
   const ps=await api('players?club_id=eq.'+encodeURIComponent(club)+'&select=id,first_name,last_name,jersey_number&order=jersey_number');
   $('eventPlayer').innerHTML+='<option value="">Hakuna mchezaji</option>'+ps.map(p=>'<option value="'+esc(p.id)+'">'+esc([p.first_name,p.last_name].filter(Boolean).join(' ')||'Mchezaji')+' #'+esc(p.jersey_number||'—')+'</option>').join('');
 }
+function scoringEvent(type){return ['goal','goals','goal_scored','penalty','penalty_goal','own_goal','own-goal'].includes(String(type||'').toLowerCase().trim().replace(/[\\s-]+/g,'_'))}
+function scoringDelta(type,clubId,homeId,awayId){
+  const t=String(type||'').toLowerCase().trim().replace(/[\\s-]+/g,'_');
+  if(!scoringEvent(t))return {home:0,away:0};
+  if(t==='own_goal'||t==='own-goal')return String(clubId)===String(homeId)?{home:0,away:1}:{home:1,away:0};
+  return String(clubId)===String(homeId)?{home:1,away:0}:{home:0,away:1};
+}
+async function adjustMatchScore(matchId,deltaHome,deltaAway){
+  if(!deltaHome&&!deltaAway)return;
+  const rows=await api('matches?id=eq.'+encodeURIComponent(matchId)+'&select=id,home_score,away_score');
+  if(!rows.length)throw new Error('Mechi haijapatikana.');
+  const m=rows[0],home=Math.max(0,Number(m.home_score||0)+deltaHome),away=Math.max(0,Number(m.away_score||0)+deltaAway);
+  await api('matches?id=eq.'+encodeURIComponent(matchId),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({home_score:home,away_score:away})});
+}
 async function addEvent(){
   const id=$('eventMatchSelect').value,type=$('eventType').value,club=$('eventClub').value,player=$('eventPlayer').value;
   const minute=Number($('eventMinute').value),description=$('eventDescription').value.trim();
@@ -45,16 +59,27 @@ async function addEvent(){
   if(!club)return msgEvent('Chagua timu.');
   if(!Number.isFinite(minute)||minute<0||minute>200)return msgEvent('Dakika iwe kati ya 0 na 200.');
   if(type!=='substitution'&&type!=='assist'&&!player)return msgEvent('Chagua mchezaji kwa tukio hili.');
+  const m=matches.find(x=>String(x.id)===String(id));if(!m)return msgEvent('Mechi haijapatikana.');
   $('addEvent').disabled=true;msgEvent('Inahifadhi...');
   try{
+    const d=scoringDelta(type,club,m.home_team_id,m.away_team_id);
     await api('match_events',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({match_id:id,event_type:type,minute:Math.round(minute),description,player_id:player||null,club_id:club})});
-    $('eventDescription').value='';$('eventMinute').value='';msgEvent('✅ Tukio limehifadhiwa.');
-    await loadEvents(id);
+    if(d.home||d.away)await adjustMatchScore(id,d.home,d.away);
+    $('eventDescription').value='';$('eventMinute').value='';msgEvent(d.home||d.away?'✅ Tukio limehifadhiwa na score imesasishwa.':'✅ Tukio limehifadhiwa.');
+    await loadEvents(id);await loadMatches();
   }catch(e){msgEvent('❌ '+e.message)}finally{$('addEvent').disabled=false}
 }
 async function deleteEvent(id){
   if(!confirm('Futa tukio hili?'))return;
-  try{await api('match_events?id=eq.'+encodeURIComponent(id),{method:'DELETE'});await loadEvents($('eventMatchSelect').value);}catch(e){msgEvent('❌ '+e.message)}
+  try{
+    const rows=await api('match_events?id=eq.'+encodeURIComponent(id)+'&select=id,match_id,event_type,club_id');
+    if(!rows.length)return;
+    const e=rows[0],m=matches.find(x=>String(x.id)===String(e.match_id));
+    await api('match_events?id=eq.'+encodeURIComponent(id),{method:'DELETE'});
+    if(m){const d=scoringDelta(e.event_type,e.club_id,m.home_team_id,m.away_team_id);if(d.home||d.away)await adjustMatchScore(e.match_id,-d.home,-d.away);}
+    await loadEvents($('eventMatchSelect').value);await loadMatches();
+    msgEvent('✅ Tukio limefutwa'+(m&&scoringEvent(e.event_type)?' na score imesasishwa.':'.'));
+  }catch(e){msgEvent('❌ '+e.message)}
 }
 function msgEvent(x){$('eventMsg').textContent=x}
 
