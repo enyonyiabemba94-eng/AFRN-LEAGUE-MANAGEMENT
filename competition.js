@@ -41,7 +41,7 @@ async function loadUpendo(){
   safeApi('match_events?select=id,match_id,player_id,club_id,event_type,minute,description'),
   safeApi('players?select=*')
  ]);
- const matchIds=new Set(matches.map(m=>String(m.id))); const events=eventsRaw.filter(e=>matchIds.has(String(e.match_id))); const names=Object.fromEntries(clubs.map(x=>[x.id,x.name]));
+ const events=eventsRaw.filter(e=>matchIds.has(String(e.match_id))); const names=Object.fromEntries(clubs.map(x=>[x.id,x.name]));
  const groups={};ct.forEach(x=>(groups[x.group_name]??=[]).push(x.club_id));
  const leagueMatches=matches;
  const matchesHtml=matches.map((m,i)=>`<tr><td>${m.match_number??(i+1)}</td><td colspan="2">${matchLink(m,names[m.home_team_id]||m.home_team_id,names[m.away_team_id]||m.away_team_id)}</td><td>${esc(m.match_date||'—')}</td><td>${esc(m.venue||'—')}</td><td>${esc(stage(m.notes))}</td></tr>`).join('');
