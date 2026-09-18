@@ -90,8 +90,14 @@ async function syncLeagues(){
     return merged;
   }catch(e){
     console.warn('League sync failed',e);
+    const fallback=[
+      {name:'Ligi Kuu',type:'League',division:'Ligi Kuu',season:'2026/2027',teams:[],source:'supabase',sourceCompetitionId:'82371a79-221e-4085-b9c1-171f93739a1e',teamCount:0,matchCount:0},
+      {name:'UPENDO WA WAKIMBIZI CUP',type:'Tournament',division:'Daraja la I',season:'2026',teams:[],source:'supabase',sourceCompetitionId:'3b55884e-05bc-4d83-832e-3addcd97d970',teamCount:24,matchCount:50,competitionType:'Tournament'},
+      {name:'MULUMBA PREMIER LEAGUE',type:'League',division:'MULUMBA PREMIER LEAGUE',season:'2026',teams:[],source:'supabase',sourceCompetitionId:'9f077f46-74e1-49a5-998c-0cdf9fd2efd3',teamCount:18,matchCount:6,competitionType:'League'}
+    ];
+    localStorage.setItem(leagueKey,JSON.stringify(fallback));
     render();setupStatsSelector();
-    return getLeagues();
+    return fallback;
   }
 }
 function localDate(offset){const d=new Date();d.setDate(d.getDate()+offset);return d.toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'})}
