@@ -19,7 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -35,7 +34,7 @@ jobs:
           rm -rf www
           mkdir -p www
           cp -r index.html style.css app.js competition.html competition.js competition-stats.js match.html match.js match-stats.js match-shots.js team.html team.js player.html player.js scorers.html scorers.js admin.html admin.js centre-pro.js auth.html auth.js manifest.webmanifest sw.js icon.svg www/
-      
+
       - name: Create Android project
         run: npx cap add android
 
