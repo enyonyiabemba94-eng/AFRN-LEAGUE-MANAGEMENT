@@ -70,11 +70,18 @@ async function loadLeague(){
   try{registeredCompetitionTeams=await api(`competition_teams?competition_id=eq.${encodeURIComponent(c.sourceCompetitionId)}&select=club_id,group_name&order=created_at`)}catch(e){console.warn('competition_teams:',e)}
  }
  const registeredIds=new Set(registeredCompetitionTeams.map(x=>String(x.club_id)));
+ const hasRegisteredTeams=registeredIds.size>0;
+ // Ikiwa competition_teams bado haijasajiliwa, usizuie mechi rasmi za competition hii.
+ // Mechi zenye competition_id husika ndizo chanzo cha kwanza cha ratiba/matokeo.
+ const matchTeamIds=new Set(matches.flatMap(m=>[String(m.home_team_id),String(m.away_team_id)]));
+ const effectiveTeamIds=hasRegisteredTeams?registeredIds:matchTeamIds;
  const dbTeams=c.sourceCompetitionId
-   ?clubs.filter(x=>registeredIds.has(String(x.id)))
+   ?clubs.filter(x=>effectiveTeamIds.has(String(x.id)))
    :clubs.filter(x=>!c.division||c.division==='Open'||x.division===c.division);
  const leagueMatches=c.sourceCompetitionId
-   ?matches.filter(m=>registeredIds.has(String(m.home_team_id))&&registeredIds.has(String(m.away_team_id)))
+   ?(hasRegisteredTeams
+      ?matches.filter(m=>registeredIds.has(String(m.home_team_id))&&registeredIds.has(String(m.away_team_id)))
+      :matches)
    :matches;
  const leagueMatchIds=new Set(leagueMatches.map(m=>String(m.id)));
  const leagueEvents=c.sourceCompetitionId
