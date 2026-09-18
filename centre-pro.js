@@ -37,6 +37,6 @@ async function teamCentre(){
 async function competitionHistory(){
  const idParam=new URLSearchParams(location.search).get('id');const leagues=JSON.parse(localStorage.getItem('afrn_leagues')||'[]');const c=leagues[Number(idParam)];if(!c)return;
  const name=c.name||'';let comps=[];try{comps=await afrnGet('competitions','select=id,name,season,start_date,end_date,status&name=eq.'+encodeURIComponent(name)+'&order=season.desc');}catch(e){return}
- if(!comps.length)return;const el=addBox('📚 Competition History','<div class="stats-list">'+comps.map(x=>'<a class="player-match-row" href="competition.html?id='+encodeURIComponent(x.id)+'"><span><b>'+E(x.name)+'</b><small>Season '+E(x.season||'—')+' • '+E(x.status||'—')+'</small></span><strong>→</strong></a>').join('')+'</div>');el.scrollIntoView({block:'nearest'});
+ if(!comps.length)return;const el=addBox('📚 Competition History','<div class="stats-list">'+comps.map(x=>'<a class="player-match-row" href="competition.html?source='+encodeURIComponent(x.id)+'"><span><b>'+E(x.name)+'</b><small>Season '+E(x.season||'—')+' • '+E(x.status||'—')+'</small></span><strong>→</strong></a>').join('')+'</div>');el.scrollIntoView({block:'nearest'});
 }
 (async()=>{try{if(document.getElementById('playerApp'))await playerCentre();else if(document.getElementById('teamApp'))await teamCentre();else if(document.getElementById('app'))await competitionHistory();}catch(e){console.warn('AFRN advanced centre',e);}})();
