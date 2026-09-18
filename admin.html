@@ -17,6 +17,20 @@
   <div id="compMeta" class="info" style="margin-top:10px"></div>
   <div class="admin-columns"><div><h3>Timu zilizopo kwenye mashindano</h3><div id="registered" class="admin-list"></div></div><div><h3>Ongeza Timu</h3><input id="teamSearch" placeholder="Tafuta timu..."><div id="available" class="admin-list"></div></div></div>
   </section>
+  <section class="card" id="lineupManager">
+    <div class="section-head"><div><span class="eyebrow">MATCH CENTRE</span><h2>Usimamizi wa Lineup</h2></div></div>
+    <p class="muted">Chagua mechi kisha weka Starting XI, captain, goalkeeper na substitutes. Takwimu hizi zitatumika kwenye Match Centre.</p>
+    <label>Mechi<select id="matchSelect"><option value="">Chagua mechi...</option></select></label>
+    <div id="matchMeta" class="info" style="margin-top:10px"></div>
+    <div class="admin-columns lineup-columns">
+      <div><h3 id="homeLineupTitle">Home</h3><div id="homePlayers" class="admin-list"></div></div>
+      <div><h3 id="awayLineupTitle">Away</h3><div id="awayPlayers" class="admin-list"></div></div>
+    </div>
+    <div class="section-head" style="margin-top:14px"><strong>Chaguo la mchezaji</strong><span class="muted">XI / C / GK / SUB</span></div>
+    <div id="lineupSummary" class="info"></div>
+    <button id="saveLineups">💾 Hifadhi Lineup</button>
+    <div id="lineupMsg" class="empty" style="margin-top:10px"></div>
+  </section>
 </section>
 </main>
 <script src="admin.js"></script></body></html>
