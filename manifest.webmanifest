@@ -1,0 +1,21 @@
+{
+  "name": "AFRN League Management",
+  "short_name": "AFRN League",
+  "description": "AFRN Football Centre — ligi, mechi, matokeo, timu, wachezaji na takwimu.",
+  "lang": "sw",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#081b3a",
+  "background_color": "#081b3a",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
