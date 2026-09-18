@@ -3,6 +3,72 @@ const KEY='sb_publishable_02hhRG8bgDOqSFxva8IMvQ_zWTLMa3G';
 const TOKEN_KEY='afrn_admin_access_token';
 const $=id=>document.getElementById(id);
 let token=localStorage.getItem(TOKEN_KEY)||'', comps=[], clubs=[], assignments=[], selected='';
+
+let matches=[], currentLineups=[];
+async function loadMatches(){
+  matches=await api('matches?select=id,competition_id,home_team_id,away_team_id,match_date,match_time,venue,status,match_number&order=match_date.desc,match_time.desc');
+  $('matchSelect').innerHTML='<option value="">Chagua mechi...</option>'+matches.map(m=>{
+    const h=clubs.find(c=>String(c.id)===String(m.home_team_id))?.name||'Home';
+    const a=clubs.find(c=>String(c.id)===String(m.away_team_id))?.name||'Away';
+    return '<option value="'+esc(m.id)+'">'+esc(h)+' — '+esc(a)+' • '+esc(m.match_date||'')+' '+esc((m.match_time||'').slice(0,5))+'</option>';
+  }).join('');
+}
+async function loadLineupEditor(){
+  const id=$('matchSelect').value;
+  if(!id){$('matchMeta').textContent='';$('homePlayers').innerHTML='';$('awayPlayers').innerHTML='';$('lineupSummary').textContent='';return;}
+  const m=matches.find(x=>String(x.id)===String(id));if(!m)return;
+  const home=clubs.find(c=>String(c.id)===String(m.home_team_id)),away=clubs.find(c=>String(c.id)===String(m.away_team_id));
+  $('matchMeta').textContent=(m.match_date||'—')+' '+(m.match_time||'').slice(0,5)+' • '+(m.status||'—')+' • '+(m.venue||'Venue haijawekwa');
+  $('homeLineupTitle').textContent=(home?.name||'Home')+' — Lineup';
+  $('awayLineupTitle').textContent=(away?.name||'Away')+' — Lineup';
+  const [hp,ap,rows]=await Promise.all([
+    api('players?club_id=eq.'+encodeURIComponent(m.home_team_id)+'&select=id,first_name,last_name,jersey_number,position,status&order=jersey_number'),
+    api('players?club_id=eq.'+encodeURIComponent(m.away_team_id)+'&select=id,first_name,last_name,jersey_number,position,status&order=jersey_number'),
+    api('match_lineups_v2?match_id=eq.'+encodeURIComponent(id)+'&select=id,club_id,player_id,shirt_number,position,starter,captain,goalkeeper,substitute,entered_minute,left_minute')
+  ]);
+  currentLineups=rows;renderLineupSide('homePlayers',hp,m.home_team_id);renderLineupSide('awayPlayers',ap,m.away_team_id);renderLineupSummary();
+}
+function renderLineupSide(target,players,clubId){
+  const rows=currentLineups.filter(r=>String(r.club_id)===String(clubId)),byPlayer=new Map(rows.map(r=>[String(r.player_id),r]));
+  $(target).innerHTML=players.map(p=>{
+    const r=byPlayer.get(String(p.id))||{};
+    return '<div class="admin-row lineup-player"><span><b>'+esc([p.first_name,p.last_name].filter(Boolean).join(' ')||'Mchezaji')+'</b><small>#'+esc(p.jersey_number||'—')+' • '+esc(p.position||'—')+'</small></span>'+
+      '<label class="mini-check"><input type="checkbox" data-player="'+esc(p.id)+'" data-club="'+esc(clubId)+'" data-role="starter" '+(r.starter?'checked':'')+'> XI</label>'+
+      '<label class="mini-check"><input type="checkbox" data-player="'+esc(p.id)+'" data-club="'+esc(clubId)+'" data-role="captain" '+(r.captain?'checked':'')+'> C</label>'+
+      '<label class="mini-check"><input type="checkbox" data-player="'+esc(p.id)+'" data-club="'+esc(clubId)+'" data-role="goalkeeper" '+(r.goalkeeper?'checked':'')+'> GK</label>'+
+      '<label class="mini-check"><input type="checkbox" data-player="'+esc(p.id)+'" data-club="'+esc(clubId)+'" data-role="substitute" '+(r.substitute?'checked':'')+'> SUB</label></div>';
+  }).join('')||'<div class="empty">Hakuna wachezaji.</div>';
+  document.querySelectorAll('#'+target+' input').forEach(x=>x.onchange=renderLineupSummary);
+}
+function getDraftLineups(){
+  const by=new Map();
+  document.querySelectorAll('#homePlayers input,#awayPlayers input').forEach(x=>{
+    const key=x.dataset.player;
+    if(!by.has(key))by.set(key,{player_id:key,club_id:x.dataset.club,starter:false,captain:false,goalkeeper:false,substitute:false});
+    by.get(key)[x.dataset.role]=x.checked;
+  });
+  return [...by.values()].filter(r=>r.starter||r.captain||r.goalkeeper||r.substitute);
+}
+function renderLineupSummary(){
+  const m=matches.find(x=>String(x.id)===String($('matchSelect').value));if(!m)return;
+  const rows=getDraftLineups(),h=rows.filter(r=>String(r.club_id)===String(m.home_team_id)),a=rows.filter(r=>String(r.club_id)===String(m.away_team_id));
+  $('lineupSummary').textContent='Home: '+h.filter(r=>r.starter).length+' XI / '+h.filter(r=>r.substitute).length+' SUB • Away: '+a.filter(r=>r.starter).length+' XI / '+a.filter(r=>r.substitute).length+' SUB';
+}
+async function saveLineups(){
+  const id=$('matchSelect').value;if(!id)return msgLineup('Chagua mechi kwanza.');
+  const m=matches.find(x=>String(x.id)===String(id)),rows=getDraftLineups(),h=rows.filter(r=>String(r.club_id)===String(m.home_team_id)),a=rows.filter(r=>String(r.club_id)===String(m.away_team_id));
+  if(h.filter(r=>r.starter).length>11||a.filter(r=>r.starter).length>11)return msgLineup('Kila timu haiwezi kuwa na zaidi ya Starting XI 11.');
+  if(h.filter(r=>r.captain).length>1||a.filter(r=>r.captain).length>1)return msgLineup('Kila timu iwe na Captain mmoja tu.');
+  if(h.filter(r=>r.goalkeeper).length>1||a.filter(r=>r.goalkeeper).length>1)return msgLineup('Kila timu iwe na Goalkeeper mmoja tu.');
+  $('saveLineups').disabled=true;msgLineup('Inahifadhi...');
+  try{
+    await api('match_lineups_v2?match_id=eq.'+encodeURIComponent(id),{method:'DELETE'});
+    if(rows.length)await api('match_lineups_v2',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.map(r=>({...r,match_id:id})))});
+    msgLineup('✅ Lineup imehifadhiwa.');await loadLineupEditor();
+  }catch(e){msgLineup('❌ '+e.message)}finally{$('saveLineups').disabled=false}
+}
+function msgLineup(x){$('lineupMsg').textContent=x}
+
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function api(path,opt={}){const h={apikey:KEY,Authorization:'Bearer '+(token||KEY),'Content-Type':'application/json',...(opt.headers||{})};const r=await fetch(URL+'/rest/v1/'+path,{...opt,headers:h});if(!r.ok){const t=await r.text();throw new Error(r.status+' '+t)}const t=await r.text();return t?JSON.parse(t):[]}
 async function login(){const email=$('email').value.trim(),password=$('password').value;if(!email||!password)return msg('Jaza email na password.');$('login').disabled=true;msg('Inathibitisha...');try{const r=await fetch(URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});const data=await r.json();if(!r.ok)throw new Error(data.error_description||data.msg||'Login imekataa');token=data.access_token;localStorage.setItem(TOKEN_KEY,token);$('loginCard').classList.add('hidden');$('adminApp').classList.remove('hidden');await load()}catch(e){token='';localStorage.removeItem(TOKEN_KEY);msg('❌ '+e.message)}finally{$('login').disabled=false}}
@@ -14,4 +80,5 @@ function filterAvailable(ids){const q=$('teamSearch').value.trim().toLowerCase()
 async function addTeam(clubId){try{const c=comps.find(x=>String(x.id)===String(selected));let group=null;if(String(c?.name||'').toLowerCase().includes('upendo')){const n=assignments.length;group=String.fromCharCode(65+Math.floor(n/4));if(group>'F')group=null}await api('competition_teams',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({competition_id:selected,club_id:clubId,group_name:group})});await refresh()}catch(e){alert('Timu haijaongezwa: '+e.message)}}
 async function removeTeam(id){if(!confirm('Ondoa timu hii kwenye mashindano?'))return;try{await api('competition_teams?id=eq.'+encodeURIComponent(id),{method:'DELETE'});await refresh()}catch(e){alert('Timu haijaondolewa: '+e.message)}}
 function logout(){token='';localStorage.removeItem(TOKEN_KEY);$('adminApp').classList.add('hidden');$('loginCard').classList.remove('hidden');}
-$('login').onclick=login;$('logout').onclick=logout;$('competition').onchange=refresh;$('teamSearch').oninput=()=>{const ids=new Set(assignments.map(a=>String(a.club_id)));filterAvailable(ids)};if(token){$('loginCard').classList.add('hidden');$('adminApp').classList.remove('hidden');load().catch(()=>logout())}
+$('login').onclick=login;$('logout').onclick=logout;$('competition').onchange=refresh;$('teamSearch').oninput=()=>{const ids=new Set(assignments.map(a=>String(a.club_id)));filterAvailable(ids)};if(token){$('loginCard').classList.add('hidden');$('adminApp').classList.remove('hidden');load().then(loadMatches).catch(()=>logout())}
+$('matchSelect').onchange=loadLineupEditor;$('saveLineups').onclick=saveLineups;
