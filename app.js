@@ -24,7 +24,7 @@ function render(){
   }
   html+=cups.map((l,i)=>{
     const openId=l.sourceCompetitionId||l.id||i;
-    return `<article class="competition-card" onclick="openLeague('${openId}')"><div class="comp-head"><div><div class="comp-title">🏆 ${esc(l.name)}</div><div class="comp-meta">${esc(l.season||'')} • Mashindano/Cup</div></div><span class="badge">CUP</span></div><div class="score-row"><div><b>${esc(l.teamCount??0)}</b><div class="status">Timu</div></div><div class="score">${esc(l.matchCount??'—')}</div><div><b>Mechi</b><div class="status">Jumla</div></div></div><div class="cup-flow">Makundi A–F • Knockout</div><button class="open">Fungua Mashindano →</button></article>`
+    return `<article class="competition-card" onclick="openLeague('${openId}')"><div class="comp-head"><div><div class="comp-title">🏆 ${esc(l.name)}</div><div class="comp-meta">${esc(l.season||'')} • Mashindano/Cup</div></div><span class="badge">CUP</span></div><div class="score-row"><div><b>${esc(l.teamCount??0)}</b><div class="status">Timu</div></div><div class="score">${esc(l.matchCount??'—')}</div><div><b>${esc(l.matchCount??0)}</b><div class="status">Mechi</div></div></div><div class="cup-flow">Makundi A–F • Knockout</div><button class="open">Fungua Mashindano →</button></article>`
   }).join('');
   html+=otherLeagues.map((l,i)=>{
     const openId=l.sourceCompetitionId||l.id||i;
@@ -57,22 +57,19 @@ async function supa(path,options={}){const r=await fetch(SUPABASE_URL+'/rest/v1/
 async function syncLeagues(){
   try{
     const db=await supa('competitions?select=id,name,competition_type,season,start_date,end_date,status,logo_url,organizer&order=created_at');
-    const ids=db.map(x=>String(x.id));
     let ct=[],matches=[];
-    if(ids.length){
-      const inIds='('+ids.join(',')+')';
-      try{ct=await supa('competition_teams?select=competition_id,club_id&competition_id=in.'+encodeURIComponent(inIds))}catch(e){console.warn('Competition teams sync failed',e)}
-      try{matches=await supa('matches?select=id,competition_id,match_date,match_time&competition_id=in.'+encodeURIComponent(inIds))}catch(e){console.warn('Competition matches sync failed',e)}
-    }
+    try{ct=await supa('competition_teams?select=competition_id,club_id&limit=2000')}catch(e){console.warn('Competition teams sync failed',e)}
+    try{matches=await supa('matches?select=id,competition_id,match_date,match_time&limit=2000')}catch(e){console.warn('Competition matches sync failed',e)}
     const teamCounts={},matchCounts={};
-    ct.forEach(x=>{const k=String(x.competition_id);teamCounts[k]??=new Set();teamCounts[k].add(String(x.club_id))});
+    ct.forEach(x=>{const k=String(x.competition_id||'');if(!k)return;teamCounts[k]??=new Set();teamCounts[k].add(String(x.club_id))});
     matches.forEach(x=>{const k=String(x.competition_id||'');if(k)matchCounts[k]=(matchCounts[k]||0)+1});
     const current=JSON.parse(localStorage.getItem(leagueKey)||'[]');
     const synced=db.map(x=>{
       const old=current.find(l=>String(l.sourceCompetitionId||'')===String(x.id)||String(l.name||'').toLowerCase()===String(x.name||'').toLowerCase());
-      const isTournament=/tournament|cup|group\\s*stage|knockout/i.test(String(x.competition_type||''));
+      const kind=String(x.competition_type||'');
+      const isTournament=/tournament|cup|group\s*stage|knockout/i.test(kind)||/cup/i.test(String(x.name||''));
       const key=String(x.id);
-      return {name:x.name,type:isTournament?'Tournament':'League',division:old?.division||x.name,season:x.season||old?.season||'2026/2027',teams:old?.teams||[],source:'supabase',sourceCompetitionId:x.id,logo_url:x.logo_url||'',teamCount:teamCounts[key]?.size||0,matchCount:matchCounts[key]||0};
+      return {name:x.name,type:isTournament?'Tournament':'League',division:old?.division||x.name,season:x.season||old?.season||'2026/2027',teams:old?.teams||[],source:'supabase',sourceCompetitionId:x.id,logo_url:x.logo_url||'',teamCount:teamCounts[key]?.size||0,matchCount:matchCounts[key]||0,competitionType:kind};
     });
     const dbNames=new Set(synced.map(x=>String(x.name||'').toLowerCase()));
     const base=current.length?current:defaults;
