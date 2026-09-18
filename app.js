@@ -110,23 +110,69 @@ async function loadMatchFeed(view='today'){
   if(status)status.textContent='Inapakia...';
   feed.innerHTML='<div class="empty">⏳ Inapakia...</div>';
   try{
-    const [matches,clubs]=await Promise.all([
-      supa('matches?select=id,competition_id,home_team_id,away_team_id,match_date,match_time,home_score,away_score,status,venue,match_number&order=match_date,match_time&limit=300'),
-      supa('clubs?select=id,name,short_name,logo_url')
+    const [matches,clubs,competitions]=await Promise.all([
+      supa('matches?select=id,competition_id,home_team_id,away_team_id,match_date,match_time,home_score,away_score,status,venue,match_number&order=match_date,match_time&limit=500'),
+      supa('clubs?select=id,name,short_name,logo_url'),
+      supa('competitions?select=id,name,season,competition_type&limit=300')
     ]);
-    const names=Object.fromEntries(clubs.map(c=>[String(c.id),c]));
+    const teams=Object.fromEntries((clubs||[]).map(c=>[String(c.id),c]));
+    const comps=Object.fromEntries((competitions||[]).map(c=>[String(c.id),c]));
     const now=new Date();
     const local=(offset)=>{const d=new Date(now);d.setDate(d.getDate()+offset);return d.toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'})};
     const day=view==='all'?null:view==='today'?local(0):view==='yesterday'?local(-1):local(1);
     const rows=(matches||[]).filter(m=>!day||String(m.match_date||'').slice(0,10)===day);
     if(!rows.length){feed.innerHTML='<div class="empty">Hakuna mechi kwa siku hii.</div>';if(status)status.textContent='0 mechi';return;}
-    feed.innerHTML=rows.map(m=>{
-      const h=names[String(m.home_team_id)]||{},a=names[String(m.away_team_id)]||{};
-      const hs=m.home_score==null?'—':m.home_score,as=m.away_score==null?'—':m.away_score;
-      const st=String(m.status||'').toLowerCase(),live=['live','in_progress','playing','1h','2h'].includes(st);
-      return '<a class="match-row" href="match.html?id='+encodeURIComponent(m.id)+'"><span class="match-team">'+esc(h.name||h.short_name||'Nyumbani')+'</span><strong class="match-score">'+hs+' - '+as+'</strong><span class="match-team away">'+esc(a.name||a.short_name||'Ugenini')+'</span><small class="match-time">'+esc(m.match_time||m.status||'')+'</small></a>';
+
+    const liveStates=['live','in_progress','playing','1h','2h'];
+    const escAttr=(v)=>esc(v).replace(/"/g,'&quot;');
+    const logo=(team)=>{
+      if(team?.logo_url)return '<img class="fm-team-logo" src="'+escAttr(team.logo_url)+'" alt="" loading="lazy">';
+      return '<span class="fm-team-logo fm-team-logo-fallback">⚽</span>';
+    };
+    const grouped={};
+    rows.forEach(m=>{
+      const cid=String(m.competition_id||'unknown');
+      if(!grouped[cid])grouped[cid]=[];
+      grouped[cid].push(m);
+    });
+
+    const groups=Object.entries(grouped).sort((a,b)=>{
+      const ca=comps[a[0]]?.name||'Mashindano';
+      const cb=comps[b[0]]?.name||'Mashindano';
+      return ca.localeCompare(cb);
+    });
+
+    feed.innerHTML=groups.map(([cid,list])=>{
+      const c=comps[cid]||{};
+      const cname=c.name||'Mashindano';
+      const meta=[c.season,c.competition_type].filter(Boolean).join(' • ');
+      const items=list.map(m=>{
+        const h=teams[String(m.home_team_id)]||{},a=teams[String(m.away_team_id)]||{};
+        const hs=m.home_score==null?'—':m.home_score,as=m.away_score==null?'—':m.away_score;
+        const st=String(m.status||'').toLowerCase();
+        const live=liveStates.includes(st);
+        const finished=['ft','finished','full_time','completed','ended'].includes(st);
+        const statusLabel=live?'LIVE':finished?'FT':(m.match_time||m.status||'');
+        const stateClass=live?' live':finished?' finished':' scheduled';
+        return '<a class="fm-match-row'+stateClass+'" href="match.html?id='+encodeURIComponent(m.id)+'">'+
+          '<div class="fm-match-time">'+
+            '<strong class="'+(live?'live-label':'')+'">'+esc(statusLabel||'—')+'</strong>'+
+            (m.match_number?'<small>#'+esc(m.match_number)+'</small>':'')+
+          '</div>'+
+          '<div class="fm-match-teams">'+
+            '<div class="fm-team fm-home"><span>'+esc(h.name||h.short_name||'Nyumbani')+'</span>'+logo(h)+'</div>'+
+            '<div class="fm-team fm-away"><span>'+esc(a.name||a.short_name||'Ugenini')+'</span>'+logo(a)+'</div>'+
+          '</div>'+
+          '<div class="fm-match-score"><b>'+(live||finished?hs:'')+'</b><b>'+(live||finished?as:'')+'</b></div>'+
+          '<div class="fm-match-icons">'+(live?'<span class="fm-live-dot">●</span>':'')+(m.venue?'<span title="'+escAttr(m.venue)+'">⌖</span>':'')+'</div>'+
+        '</a>';
+      }).join('');
+      return '<section class="fm-competition-group">'+
+        '<div class="fm-competition-head"><div><span class="fm-cup-icon">🏆</span><div><strong>'+esc(cname)+'</strong><small>'+esc(meta||'AFRN Competition')+'</small></div></div><span>›</span></div>'+
+        items+'</section>';
     }).join('');
-    if(status)status.textContent=rows.length+' mechi';
+
+    if(status)status.textContent=rows.length+' mechi • '+groups.length+' mashindano';
   }catch(e){
     console.error('Match feed failed:',e);
     feed.innerHTML='<div class="empty">Data za mechi hazikupatikana kwa sasa.</div>';
