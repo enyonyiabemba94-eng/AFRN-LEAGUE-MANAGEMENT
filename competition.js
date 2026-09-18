@@ -1,8 +1,8 @@
 const leagues=JSON.parse(localStorage.getItem('afrn_leagues')||'[]');
 const params=new URLSearchParams(location.search);
 const rawId=params.get('id')||'';
-const id=Number(rawId);
-let c=leagues[id];
+let c=leagues.find(x=>String(x.sourceCompetitionId||'')===String(rawId))||null;
+if(!c && rawId && /^\d+$/.test(rawId)) c=leagues[Number(rawId)];
 if(!c&&params.get('source')){c={source:'supabase',sourceCompetitionId:params.get('source'),name:'Competition',season:'',division:'Open'};}
 const app=document.getElementById('app');
 const SUPABASE_URL='https://jjqhvruppafpumcthmwe.supabase.co';
@@ -104,5 +104,6 @@ async function loadLeague(){
  bindFixtureFilters();
 }
 function divisionOf(l){return l?.division||l?.name||''}
-async function render(){if(!c){app.innerHTML='<div class="empty">Mashindano hayajapatikana.</div>';return}if(c.source==='supabase'||String(c.name).toLowerCase().includes('upendo')){try{await loadUpendo()}catch(e){app.innerHTML=`<div class="empty">❌ Imeshindikana kuonyesha data ya Upendo wa Wakimbizi Cup.<br>${esc(e.message)}</div>`}return}await loadLeague()}
+async function resolveCompetition(){if(c||!rawId)return;c=await api('competitions?select=id,name,competition_type,season,status,logo_url&id=eq.'+encodeURIComponent(rawId)).then(x=>x[0]?{source:'supabase',sourceCompetitionId:x[0].id,name:x[0].name,season:x[0].season||'',division:x[0].name,logo_url:x[0].logo_url||''}:null).catch(()=>null)}
+async function render(){await resolveCompetition();if(!c){app.innerHTML='<div class="empty">Mashindano hayajapatikana.</div>';return}if(c.source==='supabase'||String(c.name).toLowerCase().includes('upendo')){try{await loadUpendo()}catch(e){app.innerHTML=`<div class="empty">❌ Imeshindikana kuonyesha data ya Upendo wa Wakimbizi Cup.<br>${esc(e.message)}</div>`}return}await loadLeague()}
 render();
