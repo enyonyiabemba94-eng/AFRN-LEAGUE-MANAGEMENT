@@ -29,13 +29,17 @@ function competitionEventRows(events,players,clubs,kind){const pm=Object.fromEnt
 function teamForm(matches,teamId){const id=String(teamId),r=matches.filter(m=>m.home_score!=null&&m.away_score!=null&&(String(m.home_team_id)===id||String(m.away_team_id)===id)).sort((a,b)=>String(b.match_date||'').localeCompare(String(a.match_date||''))||String(b.match_time||'').localeCompare(String(a.match_time||''))).slice(0,5);return r.map(m=>{const home=String(m.home_team_id)===id,a=Number(home?m.home_score:m.away_score),b=Number(home?m.away_score:m.home_score);return '<span class="'+(a>b?'form-w':a===b?'form-d':'form-l')+'">'+(a>b?'W':a===b?'D':'L')+'</span>'}).join('')||'<span class="form-match">—</span>'}
 function statsPanel(leagueEvents,players,clubs){const blocks=[['goals','⚽ Wafungaji','Hakuna mabao yaliyorekodiwa.'],['assists','🅰️ Assists','Hakuna assists zilizorekodiwa.'],['yellow','🟨 Yellow Cards','Hakuna kadi za njano zilizorekodiwa.'],['red','🟥 Red Cards','Hakuna kadi nyekundu zilizorekodiwa.']];return blocks.map(([kind,title,empty])=>{const rows=statRows(leagueEvents,players,clubs,kind);return `<div class="stat-block"><div class="stat-block-head"><h3>${title}</h3><a href="scorers.html?competition=${encodeURIComponent(c?.sourceCompetitionId||c?.name||'')}#${kind}">Angalia zote →</a></div>${rows||`<div class="empty">${empty}</div>`}</div>`}).join('')}
 async function loadUpendo(){
- const [clubs,ct,st,matches,eventsRaw,players]=await Promise.all([
-  api('clubs?select=id,name,afrn_club_id,division,zone&order=name'),
-  api(`competition_teams?competition_id=eq.${UPENDO_ID}&select=club_id,group_name,created_at&order=group_name,created_at`),
-  api(`standings?competition_id=eq.${UPENDO_ID}&select=club_id,group_name,played,wins,draws,losses,goals_for,goals_against,points,yellow_cards,red_cards&order=group_name`),
-  api(`matches?competition_id=eq.${UPENDO_ID}&select=id,home_team_id,away_team_id,match_date,match_time,venue,home_score,away_score,status,match_number,notes,home_penalties,away_penalties&order=match_number,match_date`),
-  api('match_events?select=id,match_id,player_id,club_id,event_type,minute,description'),
-  api('players?select=*')
+ const safeApi=async(path,fallback=[])=>{try{return await api(path)}catch(e){console.warn('AFRN optional data:',path,e);return fallback}};
+ const [clubs,ct,st,matches]=await Promise.all([
+  safeApi('clubs?select=id,name,afrn_club_id,division,zone&order=name'),
+  safeApi(`competition_teams?competition_id=eq.${UPENDO_ID}&select=club_id,group_name,created_at&order=group_name,created_at`),
+  safeApi(`standings?competition_id=eq.${UPENDO_ID}&select=club_id,group_name,played,wins,draws,losses,goals_for,goals_against,points,yellow_cards,red_cards&order=group_name`),
+  api(`matches?competition_id=eq.${UPENDO_ID}&select=id,home_team_id,away_team_id,match_date,match_time,venue,home_score,away_score,status,match_number,notes,home_penalties,away_penalties&order=match_number,match_date`)
+ ]);
+ const matchIds=new Set(matches.map(m=>String(m.id)));
+ const [eventsRaw,players]=await Promise.all([
+  safeApi('match_events?select=id,match_id,player_id,club_id,event_type,minute,description'),
+  safeApi('players?select=*')
  ]);
  const matchIds=new Set(matches.map(m=>String(m.id))); const events=eventsRaw.filter(e=>matchIds.has(String(e.match_id))); const names=Object.fromEntries(clubs.map(x=>[x.id,x.name]));
  const groups={};ct.forEach(x=>(groups[x.group_name]??=[]).push(x.club_id));
