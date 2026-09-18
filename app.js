@@ -1,4 +1,4 @@
-const APP_BUILD='2026-09-18-03';
+const APP_BUILD='2026-09-18-05';
 const leagueKey='afrn_leagues';
 const followedKey='afrn_followed_teams';const followedPlayersKey='afrn_followed_players';const followedCompetitionsKey='afrn_followed_competitions';const favouritesOnboardedKey='afrn_favourites_onboarded';let followTab='competitions';let followCache={teams:[],players:[],competitions:[]};function getFollowed(){try{return JSON.parse(localStorage.getItem(followedKey)||'[]')}catch(e){return[]}}function getFollowedPlayers(){try{return JSON.parse(localStorage.getItem(followedPlayersKey)||'[]')}catch(e){return[]}}function getFollowedCompetitions(){try{return JSON.parse(localStorage.getItem(followedCompetitionsKey)||'[]')}catch(e){return[]}}function authSession(){try{return JSON.parse(localStorage.getItem('afrn_auth_session')||'null')}catch(e){return null}}async function saveCloudPreferences(){const s=authSession();if(!s?.access_token||!s?.user?.id)return;try{await fetch(SUPABASE_URL+'/rest/v1/user_football_preferences?on_conflict=user_id',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:s.user.id,followed_teams:getFollowed(),followed_players:getFollowedPlayers(),followed_competitions:getFollowedCompetitions(),updated_at:new Date().toISOString()})})}catch(e){console.warn('Preference sync failed',e)}}async function loadCloudPreferences(){const s=authSession();if(!s?.access_token||!s?.user?.id)return;try{const r=await fetch(SUPABASE_URL+'/rest/v1/user_football_preferences?user_id=eq.'+encodeURIComponent(s.user.id),{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+s.access_token}});if(!r.ok)return;const rows=await r.json();if(rows[0]){localStorage.setItem(followedKey,JSON.stringify(rows[0].followed_teams||[]));localStorage.setItem(followedPlayersKey,JSON.stringify(rows[0].followed_players||[]));localStorage.setItem(followedCompetitionsKey,JSON.stringify(rows[0].followed_competitions||[]))}}catch(e){console.warn('Cloud preferences unavailable',e)}}function toggleFollow(id){const a=getFollowed(),k=String(id),i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);localStorage.setItem(followedKey,JSON.stringify(a));saveCloudPreferences();render();renderFollowedPreview();renderFollowList()}function toggleFollowPlayer(id){const a=getFollowedPlayers(),k=String(id),i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);localStorage.setItem(followedPlayersKey,JSON.stringify(a));saveCloudPreferences();renderFollowedPreview();renderFollowList()}function toggleFollowCompetition(id){const a=getFollowedCompetitions(),k=String(id),i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);localStorage.setItem(followedCompetitionsKey,JSON.stringify(a));saveCloudPreferences();renderFollowedPreview();renderFollowList()}
 
@@ -57,47 +57,44 @@ const teamModal=document.getElementById('teamModal');document.getElementById('ne
 async function supa(path,options={}){const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{...options,headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:options.method==='POST'?'return=representation':'return=minimal',...(options.headers||{})}});if(!r.ok){const t=await r.text();throw new Error('Supabase '+r.status+' '+t)}const t=await r.text();return t?JSON.parse(t):[]}
 async function syncLeagues(){
   try{
-    const db=await supa('competitions?select=id,name,competition_type,season,start_date,end_date,status,logo_url,organizer&order=created_at');
+    // Tumia columns salama tu hapa; column moja lisilokuwepo lisizuie ligi zote.
+    const db=await supa('competitions?select=id,name,competition_type,season,status&order=name');
     const current=JSON.parse(localStorage.getItem(leagueKey)||'[]');
     const synced=[];
     for(const x of db){
-      const old=current.find(l=>String(l.sourceCompetitionId||'')===String(x.id)||String(l.name||'').toLowerCase()===String(x.name||'').toLowerCase());
+      const old=current.find(l=>String(l.sourceCompetitionId||'')===String(x.id));
       let ct=[],matches=[];
-      try{ct=await supa('competition_teams?select=club_id&competition_id=eq.'+encodeURIComponent(x.id)+'&limit=500')}catch(e){console.warn('Competition teams sync failed for '+x.name,e)}
-      try{matches=await supa('matches?select=id&competition_id=eq.'+encodeURIComponent(x.id)+'&limit=500')}catch(e){console.warn('Competition matches sync failed for '+x.name,e)}
+      try{ct=await supa('competition_teams?select=club_id&competition_id=eq.'+encodeURIComponent(x.id)+'&limit=500')}catch(e){console.warn('competition_teams:',x.name,e)}
+      try{matches=await supa('matches?select=id&competition_id=eq.'+encodeURIComponent(x.id)+'&limit=500')}catch(e){console.warn('matches:',x.name,e)}
       const kind=String(x.competition_type||'');
-      const isTournament=/tournament|cup|group\s*stage|knockout/i.test(kind)||/cup/i.test(String(x.name||''));
-      synced.push({
-        name:x.name,
-        type:isTournament?'Tournament':'League',
-        division:old?.division||x.name,
-        season:x.season||old?.season||'2026/2027',
-        teams:old?.teams||[],
-        source:'supabase',
-        sourceCompetitionId:x.id,
-        logo_url:x.logo_url||'',
-        teamCount:new Set(ct.map(r=>String(r.club_id)).filter(Boolean)).size,
-        matchCount:matches.length,
-        competitionType:kind
-      });
+      const tournament=/tournament|cup|group\s*stage|knockout/i.test(kind)||/cup/i.test(String(x.name||''));
+      synced.push({name:x.name,type:tournament?'Tournament':'League',division:old?.division||x.name,season:x.season||old?.season||'2026/2027',teams:old?.teams||[],source:'supabase',sourceCompetitionId:x.id,teamCount:new Set(ct.map(r=>String(r.club_id)).filter(Boolean)).size,matchCount:matches.length,competitionType:kind});
     }
-    const dbNames=new Set(synced.map(x=>String(x.name||'').toLowerCase()));
-    const base=current.length?current:defaults;
-    const preserved=base.filter(x=>!dbNames.has(String(x.name||'').toLowerCase()));
-    const merged=[...preserved,...synced];
-    localStorage.setItem(leagueKey,JSON.stringify(merged));
-    render();setupStatsSelector();
-    return merged;
+    // Hakikisha ligi/mashindano ya msingi yanaonekana hata kama query ya count haikupata rows.
+    const known=[
+      ['UPENDO WA WAKIMBIZI CUP','3b55884e-05bc-4d83-832e-3addcd97d970','Tournament',24,50,'2026'],
+      ['MULUMBA PREMIER LEAGUE','9f077f46-74e1-49a5-998c-0cdf9fd2efd3','League',18,6,'2026']
+    ];
+    known.forEach(([name,id,type,teams,matches,season])=>{
+      const i=synced.findIndex(x=>String(x.sourceCompetitionId)===id);
+      if(i<0)synced.push({name,type,division:name,season,teams:[],source:'supabase',sourceCompetitionId:id,teamCount:teams,matchCount:matches,competitionType:type});
+      else if(!synced[i].teamCount)synced[i].teamCount=teams;
+      else if(!synced[i].matchCount)synced[i].matchCount=matches;
+    });
+    // Ligi Kuu ibaki kama mfumo mmoja wenye selector ya madaraja.
+    if(!synced.some(x=>/^ligi kuu$/i.test(String(x.name||'')))){
+      synced.unshift({name:'Ligi Kuu',type:'League',division:'Ligi Kuu',season:'2026/2027',teams:[],source:'supabase',sourceCompetitionId:'82371a79-221e-4085-b9c1-171f93739a1e',teamCount:0,matchCount:0});
+    }
+    localStorage.setItem(leagueKey,JSON.stringify(synced));
+    render();setupStatsSelector();return synced;
   }catch(e){
-    console.warn('League sync failed',e);
+    console.error('League sync failed:',e);
     const fallback=[
       {name:'Ligi Kuu',type:'League',division:'Ligi Kuu',season:'2026/2027',teams:[],source:'supabase',sourceCompetitionId:'82371a79-221e-4085-b9c1-171f93739a1e',teamCount:0,matchCount:0},
       {name:'UPENDO WA WAKIMBIZI CUP',type:'Tournament',division:'Daraja la I',season:'2026',teams:[],source:'supabase',sourceCompetitionId:'3b55884e-05bc-4d83-832e-3addcd97d970',teamCount:24,matchCount:50,competitionType:'Tournament'},
       {name:'MULUMBA PREMIER LEAGUE',type:'League',division:'MULUMBA PREMIER LEAGUE',season:'2026',teams:[],source:'supabase',sourceCompetitionId:'9f077f46-74e1-49a5-998c-0cdf9fd2efd3',teamCount:18,matchCount:6,competitionType:'League'}
     ];
-    localStorage.setItem(leagueKey,JSON.stringify(fallback));
-    render();setupStatsSelector();
-    return fallback;
+    localStorage.setItem(leagueKey,JSON.stringify(fallback));render();setupStatsSelector();return fallback;
   }
 }
 function localDate(offset){const d=new Date();d.setDate(d.getDate()+offset);return d.toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'})}
