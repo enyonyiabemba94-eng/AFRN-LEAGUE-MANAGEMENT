@@ -62,8 +62,17 @@ async function loadLeague(){
  }
  const names={...Object.fromEntries(teams.map(t=>[String(t.id),t.jina||t.name])),...Object.fromEntries(clubs.map(x=>[String(x.id),x.name]))};
  const matchTeamIds=[...new Set(matches.flatMap(m=>[String(m.home_team_id),String(m.away_team_id)]))];
- const dbTeams=clubs.filter(x=>!c.division||c.division==='Open'||x.division===c.division);
- const sourceTeamIds=c.sourceCompetitionId?[...new Set([...dbTeams.map(x=>String(x.id)),...matchTeamIds])]:teams.map(t=>String(t.id));
+ let registeredCompetitionTeams=[];
+ if(c.sourceCompetitionId){
+  try{registeredCompetitionTeams=await api(`competition_teams?competition_id=eq.${encodeURIComponent(c.sourceCompetitionId)}&select=club_id,group_name&order=created_at`)}catch(e){console.warn('competition_teams:',e)}
+ }
+ const registeredIds=new Set(registeredCompetitionTeams.map(x=>String(x.club_id)));
+ const dbTeams=c.sourceCompetitionId
+   ?clubs.filter(x=>registeredIds.has(String(x.id)))
+   :clubs.filter(x=>!c.division||c.division==='Open'||x.division===c.division);
+ const sourceTeamIds=c.sourceCompetitionId
+   ?[...registeredIds]
+   :teams.map(t=>String(t.id));
  const rows=c.sourceCompetitionId?aggregateStandings(matches,sourceTeamIds):teams.map(t=>({club_id:t.id,played:t.P||0,wins:t.W||0,draws:t.D||0,losses:t.L||0,goals_for:t.GF||0,goals_against:t.GA||0,points:t.Pts||0,yellow_cards:0,red_cards:0}));
  const table=rows.length?standingsTable(rows,names):'<div class="empty">Hakuna timu iliyosajiliwa katika daraja hili bado.</div>';
  const goals=events.filter(e=>eventKind(e.event_type)==='goals').length;
