@@ -16,7 +16,7 @@ function lineup(clubId,events,byPlayer,teamLabel){const starters=events.filter(e
 function count(arr,keys){return arr.filter(e=>keys.includes(type(e))).length}
 function setRealtimeState(s){realtimeState=s;const el=document.getElementById('realtimeState');if(el){el.className='realtime-state '+s;el.textContent=s==='connected'?'🟢 LIVE CONNECTION':s==='connecting'?'🟡 Inaunganisha…':'🟠 Fallback: refresh 15s'}}
 function h2hHtml(history,homeName,awayName){if(!history.played)return `<section id="h2h" class="card"><div class="section-head"><h2>🤝 Head-to-Head</h2></div><div class="empty">Hakuna mechi nyingine zilizorekodiwa kati ya ${esc(homeName)} na ${esc(awayName)}.</div></section>`;const recent=history.matches.slice(0,8);return `<section id="h2h" class="card"><div class="section-head"><h2>🤝 Head-to-Head</h2><span class="event-count">${history.played} mechi</span></div><div class="h2h-head"><div><b>${esc(homeName)}</b><small>vs</small><b>${esc(awayName)}</b></div></div><div class="h2h-stats"><div><b>${history.homeWins}</b><small>${esc(homeName)} Ushindi</small></div><div><b>${history.draws}</b><small>Sare</small></div><div><b>${history.awayWins}</b><small>${esc(awayName)} Ushindi</small></div><div><b>${history.homeGF}:${history.homeGA}</b><small>GF:GA kwa ${esc(homeName)}</small></div></div><div class="h2h-results">${recent.map(x=>`<a href="match.html?id=${encodeURIComponent(x.id)}"><span>${esc(x.date||'—')}</span><b>${esc(x.score)}</b><small>${x.home?'Nyumbani':'Ugenini'}</small></a>`).join('')}</div><div style="margin-top:10px;text-align:right"><a href="team.html?id=${encodeURIComponent(history.homeId)}#h2h" style="font-size:11px;color:#1473e6;text-decoration:none;font-weight:800">Fungua H2H kwenye Team Centre →</a></div></section>`}
-async function lineupV2(matchId,clubs,players){
+async function lineupV2(matchId,clubs,players,homeClubId,awayClubId){
  try{
   const rows=await api(`match_lineups_v2?match_id=eq.${encodeURIComponent(matchId)}&select=*`);
   const pm=Object.fromEntries(players.map(p=>[String(p.id),p]));
@@ -28,14 +28,14 @@ async function lineupV2(matchId,clubs,players){
    const list=a=>a.length?`<div class="player-list">${a.map(x=>{const p=pm[x.player_id];return p?`<a class="club-row" href="player.html?id=${encodeURIComponent(p.id)}"><span>${x.shirt_number?'#'+esc(x.shirt_number)+' ':''}${esc(name(p))}${x.captain?' ©':''}</span><small>${esc(x.position||p.position||'')}</small></a>`:''}).join('')}</div>`:'<div class="empty">Hakuna wachezaji waliowekwa.</div>';
    return `<div class="lineup-side"><h3>${esc(label)}</h3><h4>Starting XI</h4>${list(r.filter(x=>x.starter&&!x.substitute))}<h4>Substitutes</h4>${list(r.filter(x=>x.substitute||!x.starter))}</div>`;
   };
-  return rows.length?side(matchHomeClub)+side(matchAwayClub):null;
+  return rows.length?side(homeClubId)+side(awayClubId):null;
  }catch(e){console.warn('Lineups v2:',e);return null}
 }
 async function render(){
  if(!matchId){box.innerHTML='<div class="empty">Mechi haijachaguliwa.</div>';return}
  const [matches,clubs,events,players,competitions]=await Promise.all([api(`matches?id=eq.${encodeURIComponent(matchId)}&select=id,competition_id,home_team_id,away_team_id,match_date,match_time,venue,home_score,away_score,status,match_number,notes,home_penalties,away_penalties,referee,first_half_home,first_half_away,second_half_home,second_half_away,extra_time_home,extra_time_away`),api('clubs?select=id,name,short_name,afrn_club_id,logo_url,division,zone'),api(`match_events?match_id=eq.${encodeURIComponent(matchId)}&select=id,player_id,club_id,event_type,minute,description&order=minute,id`),api('players?select=id,first_name,last_name,full_name,shirt_number,position,club_id'),api('competitions?select=id,name,season,logo_url,status')]);
  if(!matches.length){box.innerHTML='<div class="empty">Mechi haijapatikana.</div>';return}
- const m=matches[0]; const matchHomeClub=m.home_team_id, matchAwayClub=m.away_team_id; const v2Lineups=await lineupV2(matchId,clubs,players); const competition=competitions.find(c=>String(c.id)===String(m.competition_id))||null,names=Object.fromEntries(clubs.map(c=>[c.id,c.name||c.short_name])),byPlayer=Object.fromEntries(players.map(p=>[p.id,p]));
+ const m=matches[0]; const matchHomeClub=m.home_team_id, matchAwayClub=m.away_team_id; const v2Lineups=await lineupV2(matchId,clubs,players,matchHomeClub,matchAwayClub); const competition=competitions.find(c=>String(c.id)===String(m.competition_id))||null,names=Object.fromEntries(clubs.map(c=>[c.id,c.name||c.short_name])),byPlayer=Object.fromEntries(players.map(p=>[p.id,p]));
  const teamLabel=id=>names[id]||'Timu'; const teamLogo=id=>{const c=clubs.find(x=>String(x.id)===String(id));return c?.logo_url?`<img class="team-logo" src="${esc(c.logo_url)}" alt="${esc(teamLabel(id))}" loading="lazy">`:'<div class="crest">⚽</div>'};
  const homeEvents=events.filter(e=>String(e.club_id)===String(m.home_team_id)),awayEvents=events.filter(e=>String(e.club_id)===String(m.away_team_id));
  const score=m.home_score==null?'—':`${m.home_score} - ${m.away_score}`;
