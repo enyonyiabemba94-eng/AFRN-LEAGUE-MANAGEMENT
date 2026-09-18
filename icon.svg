@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#081b3a"/><stop offset="1" stop-color="#1457b8"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<path d="M256 64 410 118v119c0 111-66 176-154 211-88-35-154-100-154-211V118L256 64Z" fill="#fff" opacity=".97"/>
+<path d="M256 86 386 132v103c0 91-51 146-130 180-79-34-130-89-130-180V132L256 86Z" fill="#0b2d62"/>
+<circle cx="256" cy="250" r="92" fill="#fff"/>
+<path d="m256 185 23 17 44-1 14 43-27 35 10 42-64 24-64-24 10-42-27-35 14-43 44 1 23-17Z" fill="#0b2d62"/>
+<path d="M256 185v31m67-16-44 2m-90 0 44-2m-61 44 39 31m106-31-39 31m-49 0-10 42m0 0 64 0m-54-42 54 0m0 0 10 42" fill="none" stroke="#1457b8" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="256" y="421" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="800" letter-spacing="5" fill="#fff">AFRN</text>
+</svg>
