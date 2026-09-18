@@ -52,12 +52,15 @@ async function loadLeague(){
  let matches=[],events=[],players=[],clubs=[];
  if(c.sourceCompetitionId){
   matches=await api(`matches?competition_id=eq.${c.sourceCompetitionId}&select=id,home_team_id,away_team_id,match_date,match_time,venue,home_score,away_score,status,notes&order=match_date,match_time`);
-  players=await api('players?select=*'); clubs=await api('clubs?select=id,name');
+  players=await api('players?select=*'); clubs=await api('clubs?select=id,name,division,zone,logo_url');
   const mids=matches.map(m=>m.id);
   if(mids.length) events=await api(`match_events?match_id=in.(${mids.join(',')})&select=id,match_id,player_id,club_id,event_type,minute,description`);
  }
  const names={...Object.fromEntries(teams.map(t=>[String(t.id),t.jina||t.name])),...Object.fromEntries(clubs.map(x=>[String(x.id),x.name]))};
- const rows=c.sourceCompetitionId?aggregateStandings(matches,teams.map(t=>String(t.id))):teams.map(t=>({club_id:t.id,played:t.P||0,wins:t.W||0,draws:t.D||0,losses:t.L||0,goals_for:t.GF||0,goals_against:t.GA||0,points:t.Pts||0,yellow_cards:0,red_cards:0}));
+ const matchTeamIds=[...new Set(matches.flatMap(m=>[String(m.home_team_id),String(m.away_team_id)]))];
+ const dbTeams=clubs.filter(x=>!c.division||c.division==='Open'||x.division===c.division);
+ const sourceTeamIds=c.sourceCompetitionId?[...new Set([...dbTeams.map(x=>String(x.id)),...matchTeamIds])]:teams.map(t=>String(t.id));
+ const rows=c.sourceCompetitionId?aggregateStandings(matches,sourceTeamIds):teams.map(t=>({club_id:t.id,played:t.P||0,wins:t.W||0,draws:t.D||0,losses:t.L||0,goals_for:t.GF||0,goals_against:t.GA||0,points:t.Pts||0,yellow_cards:0,red_cards:0}));
  const table=rows.length?standingsTable(rows,names):'<div class="empty">Hakuna timu iliyosajiliwa katika daraja hili bado.</div>';
  const goals=events.filter(e=>eventKind(e.event_type)==='goals').length;
  const yellows=events.filter(e=>eventKind(e.event_type)==='yellow').length;
@@ -66,10 +69,10 @@ async function loadLeague(){
  <section id="overview" class="card"><h2>🏆 Muhtasari</h2><div class="quick-grid"><div><b>${teams.length}</b><span>Timu</span></div><div><b>${matches.length}</b><span>Mechi</span></div><div><b>${goals}</b><span>Mabao</span></div><div><b>${yellows}</b><span>Kadi</span></div></div><div class="info">Data ya ligi inaonyesha timu za <b>${esc(c.division)}</b> pekee. Matokeo na msimamo hutokana na mechi zilizorekodiwa.</div></section>
  <section id="fixtures" class="card"><h2>📅 Ratiba & Matokeo</h2><div class="fixture-filters" data-prefix="league"><button class="active" data-filter="all">Zote</button><button data-filter="today">Leo</button><button data-filter="upcoming">Upcoming</button><button data-filter="results">Results</button></div><div class="fixture-list">${fixtureRows(matches,names,'league')}</div></section>
  <section id="standings" class="card"><h2>📊 Msimamo</h2>${table}</section>
- <section id="teams" class="card"><h2>👥 Timu</h2><div class="team-grid">${teams.map(t=>teamLink(t.id,t.jina||t.name,`${t.division}${t.zone?' • '+t.zone:''}`)).join('')||'<div class="empty">Hakuna timu.</div>'}</div></section>
+ <section id="teams" class="card"><h2>👥 Timu</h2><div class="team-grid">${(c.sourceCompetitionId?dbTeams:teams).map(t=>teamLink(t.id,t.jina||t.name,`${t.division||c.division}${t.zone?' • '+t.zone:''}`)).join('')||'<div class="empty">Hakuna timu.</div>'}</div></section>
  <section id="scorers" class="card"><h2>⚽ Wafungaji</h2>${liveStats}</section>
  <section id="cards" class="card"><h2>🟨 🟥 Kadi</h2>${liveStats}</section>
- <section id="stats" class="card"><h2>📈 Statistics</h2><div class="empty">${c.sourceCompetitionId?'Takwimu za kina zitaonekana hapa kadri match_statistics zinavyorekodiwa.':'Statistics zitaongezeka kadri mechi zinavyorekodiwa.'}</div></section>
+ <section id="stats" class="card"><h2>📈 Statistics</h2><div class="info">Takwimu za kina za possession, shots, xG, passes, corners, fouls, saves na metrics nyingine zitaonyeshwa hapa kutoka <b>match_statistics</b> bila kubuni data.</div><a class="open" style="display:block;text-align:center;text-decoration:none" href="competition.html?id=${encodeURIComponent(id)}#stats">Refresh Statistics →</a></section>
  <section id="history" class="card"><h2>📚 Historia</h2><div class="empty">Historia ya ${esc(c.name)} itawekwa hapa.</div></section>`);
  bindFixtureFilters();
 }
