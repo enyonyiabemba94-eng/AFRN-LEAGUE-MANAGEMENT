@@ -5,6 +5,7 @@ let c=leagues.find(x=>String(x.sourceCompetitionId||'')===String(rawId))||null;
 if(!c && rawId && /^\d+$/.test(rawId)) c=leagues[Number(rawId)];
 if(!c&&params.get('source')){c={source:'supabase',sourceCompetitionId:params.get('source'),name:'Competition',season:'',division:'Open'};}
 const app=document.getElementById('app');
+if(app) app.innerHTML='<div class="card"><h2>⏳ Inapakia mashindano...</h2><p class="muted">AFRN Football Centre inaunganisha data ya mashindano.</p></div>';
 const SUPABASE_URL='https://jjqhvruppafpumcthmwe.supabase.co';
 const SUPABASE_KEY='sb_publishable_02hhRG8bgDOqSFxva8IMvQ_zWTLMa3G';
 const UPENDO_ID='3b55884e-05bc-4d83-832e-3addcd97d970';
@@ -125,6 +126,6 @@ async function render(){
     try{await loadUpendo()}catch(e){console.error(e);app.innerHTML=`<div class="empty">❌ Imeshindikana kuonyesha data ya Upendo wa Wakimbizi Cup.<br>${esc(e.message)}</div>`}
     return
   }
-  await loadLeague()
+  try{await loadLeague()}catch(e){console.error(e);app.innerHTML=`<div class="card"><h2>❌ Imeshindikana kupakia</h2><p>${esc(e.message)}</p><button onclick="location.reload()">Jaribu tena</button></div>`}
 }
-render();
+render().catch(e=>{console.error(e);if(app)app.innerHTML=`<div class="card"><h2>❌ Hitilafu</h2><p>${esc(e.message)}</p><button onclick="location.reload()">Jaribu tena</button></div>``});
