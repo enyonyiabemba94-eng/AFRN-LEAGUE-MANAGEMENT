@@ -31,6 +31,28 @@
     <button id="saveLineups">💾 Hifadhi Lineup</button>
     <div id="lineupMsg" class="empty" style="margin-top:10px"></div>
   </section>
+  <section class="card" id="eventManager">
+    <div class="section-head"><div><span class="eyebrow">MATCH CENTRE</span><h2>Usimamizi wa Matukio</h2></div></div>
+    <p class="muted">Ongeza Goal, Assist, Yellow Card, Red Card, Substitution au Penalty. VAR haipo.</p>
+    <label>Mechi<select id="eventMatchSelect"><option value="">Chagua mechi...</option></select></label>
+    <div id="eventMeta" class="info" style="margin-top:10px"></div>
+    <div class="admin-columns">
+      <div>
+        <label>Tukio<select id="eventType">
+          <option value="goal">⚽ Goal</option><option value="assist">🅰️ Assist</option>
+          <option value="yellow_card">🟨 Yellow Card</option><option value="red_card">🟥 Red Card</option>
+          <option value="substitution">🔄 Substitution</option><option value="penalty">⚽ Penalty</option>
+        </select></label>
+        <label>Dakika<input id="eventMinute" type="number" min="0" max="200" inputmode="numeric" placeholder="Mfano 67"></label>
+        <label>Timu<select id="eventClub"><option value="">Chagua timu...</option></select></label>
+        <label>Mchezaji<select id="eventPlayer"><option value="">Chagua mchezaji...</option></select></label>
+        <label>Maelezo<input id="eventDescription" maxlength="240" placeholder="Hiari; kwa substitution unaweza kuandika OUT → IN"></label>
+        <button id="addEvent">＋ Ongeza Tukio</button>
+        <div id="eventMsg" class="empty" style="margin-top:10px"></div>
+      </div>
+      <div><h3>Matukio ya Mechi</h3><div id="eventList" class="admin-list"></div></div>
+    </div>
+  </section>
 </section>
 </main>
 <script src="admin.js"></script></body></html>
