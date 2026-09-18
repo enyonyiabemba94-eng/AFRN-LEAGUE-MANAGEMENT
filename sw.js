@@ -1,5 +1,5 @@
-const CACHE='afrn-league-v9';
-const APP_SHELL=['./','./index.html','./style.css','./app.js?v=20260918-04','./competition.html','./competition.js','./competition-stats.js','./match.html','./match.js','./match-stats.js','./match-shots.js','./team.html','./team.js','./player.html','./player.js','./scorers.html','./scorers.js','./admin.html','./admin.js','./centre-pro.js','./auth.html','./auth.js','./manifest.webmanifest','./icon.svg'];
+const CACHE='afrn-league-v10';
+const APP_SHELL=['./','./index.html','./style.css','./app.js?v=20260918-05','./competition.html','./competition.js','./competition-stats.js','./match.html','./match.js','./match-stats.js','./match-shots.js','./team.html','./team.js','./player.html','./player.js','./scorers.html','./scorers.js','./admin.html','./admin.js','./centre-pro.js','./auth.html','./auth.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
