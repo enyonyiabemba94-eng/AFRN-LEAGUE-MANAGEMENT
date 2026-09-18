@@ -1,6 +1,9 @@
 const leagues=JSON.parse(localStorage.getItem('afrn_leagues')||'[]');
-const id=Number(new URLSearchParams(location.search).get('id'));
-const c=leagues[id];
+const params=new URLSearchParams(location.search);
+const rawId=params.get('id')||'';
+const id=Number(rawId);
+let c=leagues[id];
+if(!c&&params.get('source')){c={source:'supabase',sourceCompetitionId:params.get('source'),name:'Competition',season:'',division:'Open'};}
 const app=document.getElementById('app');
 const SUPABASE_URL='https://jjqhvruppafpumcthmwe.supabase.co';
 const SUPABASE_KEY='sb_publishable_02hhRG8bgDOqSFxva8IMvQ_zWTLMa3G';
