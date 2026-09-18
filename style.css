@@ -99,3 +99,46 @@ main{max-width:900px;padding:10px}
  .match-row-link small{font-size:8px}
  .team-preview{grid-template-columns:1fr 1fr}
 }
+
+
+/* ===== AFRN HOME — true FotMob-style layout ===== */
+.fotmob-home{max-width:900px;margin:0 auto}
+.fm-compact{min-height:0!important;padding:10px 12px!important;margin-bottom:6px!important;display:flex;align-items:center;justify-content:space-between}
+.fm-compact h1{font-size:18px!important;margin:2px 0!important}
+.fm-compact p{display:none!important}
+.home-actions{display:flex;gap:6px}
+.home-actions button{padding:7px 10px!important;font-size:11px!important}
+.fm-date-tabs{position:sticky;top:0;z-index:20;background:#fff}
+.fm-match-centre{margin-top:6px!important}
+.fm-match-centre .section-head{margin-bottom:7px!important}
+.fm-match-centre h2{font-size:15px!important}
+.fm-section{margin-top:10px!important}
+.fm-section>.section-head h2{font-size:15px!important}
+.fm-follow{margin-bottom:80px}
+.competition-grid{grid-template-columns:1fr!important;gap:7px!important}
+.competition-card{padding:9px!important}
+.competition-card .comp-head{margin-bottom:6px!important}
+.competition-card .comp-title{font-size:13px!important}
+.competition-card .comp-meta{font-size:10px!important}
+.competition-card .score-row{padding:6px 0!important}
+.competition-card .modules{grid-template-columns:repeat(4,1fr)!important;gap:4px!important}
+.competition-card .module{padding:6px 3px!important;font-size:9px!important}
+.match-feed{display:flex;flex-direction:column;gap:5px}
+.live-strip:empty{display:none}
+.stats-strip{margin-top:8px!important}
+@media(max-width:600px){
+  body{background:#f3f4f6}
+  .topbar{position:sticky;top:0;z-index:30;height:48px!important}
+  .topbar .brand{font-size:17px!important}
+  .topbar>div:last-child strong{font-size:12px}
+  .topbar>div:last-child small{font-size:8px}
+  .topnav{display:none!important}
+  main{padding:6px!important}
+  .fm-compact{border-radius:0!important;margin-left:-6px!important;margin-right:-6px!important}
+  .fm-date-tabs{border-radius:7px!important}
+  .quick{flex:1;text-align:center;padding:8px 5px!important}
+  .fm-match-centre{border-radius:7px!important;padding:8px!important}
+  .fm-section{border-radius:7px!important}
+  .competition-card .modules{grid-template-columns:repeat(4,1fr)!important}
+  .bottom-nav{z-index:40}
+}
