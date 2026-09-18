@@ -34,10 +34,21 @@ async function loadEvents(id){
 async function loadEventPlayers(){
   const club=$('eventClub').value;
   $('eventPlayer').innerHTML='<option value="">Chagua mchezaji...</option>';
+  $('eventPlayerOut').innerHTML='<option value="">Chagua OUT...</option>';
+  $('eventPlayerIn').innerHTML='<option value="">Chagua IN...</option>';
   if(!club)return;
   const ps=await api('players?club_id=eq.'+encodeURIComponent(club)+'&select=id,first_name,last_name,jersey_number&order=jersey_number');
-  $('eventPlayer').innerHTML+='<option value="">Hakuna mchezaji</option>'+ps.map(p=>'<option value="'+esc(p.id)+'">'+esc([p.first_name,p.last_name].filter(Boolean).join(' ')||'Mchezaji')+' #'+esc(p.jersey_number||'—')+'</option>').join('');
+  const opts=ps.map(p=>'<option value="'+esc(p.id)+'">'+esc([p.first_name,p.last_name].filter(Boolean).join(' ')||'Mchezaji')+' #'+esc(p.jersey_number||'—')+'</option>').join('');
+  $('eventPlayer').innerHTML+='<option value="">Hakuna mchezaji</option>'+opts;
+  $('eventPlayerOut').innerHTML+='<option value="">Chagua OUT...</option>'+opts;
+  $('eventPlayerIn').innerHTML+='<option value="">Chagua IN...</option>'+opts;
 }
+function toggleSubstitutionFields(){
+  const sub=$('eventType').value==='substitution';
+  $('substitutionPlayers').classList.toggle('hidden',!sub);
+  $('eventPlayer').parentElement.classList.toggle('hidden',sub);
+}
+
 function scoringEvent(type){return ['goal','goals','goal_scored','penalty','penalty_goal','own_goal','own-goal'].includes(String(type||'').toLowerCase().trim().replace(/[\\s-]+/g,'_'))}
 function scoringDelta(type,clubId,homeId,awayId){
   const t=String(type||'').toLowerCase().trim().replace(/[\\s-]+/g,'_');
@@ -54,18 +65,21 @@ async function adjustMatchScore(matchId,deltaHome,deltaAway){
 }
 async function addEvent(){
   const id=$('eventMatchSelect').value,type=$('eventType').value,club=$('eventClub').value,player=$('eventPlayer').value;
+  const outPlayer=$('eventPlayerOut').value,inPlayer=$('eventPlayerIn').value;
   const minute=Number($('eventMinute').value),description=$('eventDescription').value.trim();
   if(!id)return msgEvent('Chagua mechi kwanza.');
   if(!club)return msgEvent('Chagua timu.');
   if(!Number.isFinite(minute)||minute<0||minute>200)return msgEvent('Dakika iwe kati ya 0 na 200.');
+  if(type==='substitution'&&(!outPlayer||!inPlayer||outPlayer===inPlayer))return msgEvent('Chagua mchezaji OUT na IN tofauti.');
   if(type!=='substitution'&&type!=='assist'&&!player)return msgEvent('Chagua mchezaji kwa tukio hili.');
   const m=matches.find(x=>String(x.id)===String(id));if(!m)return msgEvent('Mechi haijapatikana.');
   $('addEvent').disabled=true;msgEvent('Inahifadhi...');
   try{
     const d=scoringDelta(type,club,m.home_team_id,m.away_team_id);
-    await api('match_events',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({match_id:id,event_type:type,minute:Math.round(minute),description,player_id:player||null,club_id:club})});
+    const finalDescription=type==='substitution'?'OUT: '+outPlayer+' → IN: '+inPlayer+(description?' • '+description:''):description;
+    await api('match_events',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({match_id:id,event_type:type,minute:Math.round(minute),description:finalDescription,player_id:type==='substitution'?inPlayer:(player||null),club_id:club})});
     if(d.home||d.away)await adjustMatchScore(id,d.home,d.away);
-    $('eventDescription').value='';$('eventMinute').value='';msgEvent(d.home||d.away?'✅ Tukio limehifadhiwa na score imesasishwa.':'✅ Tukio limehifadhiwa.');
+    $('eventDescription').value='';$('eventMinute').value='';$('eventPlayer').value='';$('eventPlayerOut').value='';$('eventPlayerIn').value='';msgEvent(d.home||d.away?'✅ Tukio limehifadhiwa na score imesasishwa.':'✅ Tukio limehifadhiwa.');
     await loadEvents(id);await loadMatches();
   }catch(e){msgEvent('❌ '+e.message)}finally{$('addEvent').disabled=false}
 }
@@ -154,4 +168,6 @@ $('login').onclick=login;$('logout').onclick=logout;$('competition').onchange=re
 $('matchSelect').onchange=loadLineupEditor;
 $('eventMatchSelect').onchange=loadEventEditor;
 $('eventClub').onchange=loadEventPlayers;
-$('addEvent').onclick=addEvent;$('saveLineups').onclick=saveLineups;
+$('eventType').onchange=toggleSubstitutionFields;
+$('addEvent').onclick=addEvent;
+toggleSubstitutionFields();$('saveLineups').onclick=saveLineups;
