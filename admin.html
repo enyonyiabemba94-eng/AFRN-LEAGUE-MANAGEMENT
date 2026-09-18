@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AFRN Admin Centre</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="topbar"><div class="brand">⚽ AFRN</div><div><strong>ADMIN CENTRE</strong><small>Usimamizi wa ligi, timu na mechi</small></div></header>
+<main>
+<div class="back"><a href="index.html">← Rudi Football Centre</a></div>
+<section id="loginCard" class="card">
+  <span class="eyebrow">SECURE ACCESS</span><h1>AFRN Admin</h1>
+  <p class="muted">Ingia kwa akaunti ya AFRN yenye ruhusa ya admin. RLS ya Supabase ndiyo inayothibitisha ruhusa; hakuna siri ya admin iliyowekwa kwenye code.</p>
+  <label>Email<input id="email" type="email" autocomplete="username" placeholder="admin@example.com"></label>
+  <label>Password<input id="password" type="password" autocomplete="current-password" placeholder="••••••••"></label>
+  <button id="login">🔐 Ingia</button><div id="loginMsg" class="empty" style="margin-top:10px"></div>
+</section>
+<section id="adminApp" class="hidden">
+  <section class="card"><div class="section-head"><div><span class="eyebrow">COMPETITION MANAGEMENT</span><h2>Usajili wa Timu kwenye Ligi</h2></div><button id="logout" class="secondary">Toka</button></div>
+  <label>Ligi/Mashindano<select id="competition"></select></label>
+  <div id="compMeta" class="info" style="margin-top:10px"></div>
+  <div class="admin-columns"><div><h3>Timu zilizopo kwenye mashindano</h3><div id="registered" class="admin-list"></div></div><div><h3>Ongeza Timu</h3><input id="teamSearch" placeholder="Tafuta timu..."><div id="available" class="admin-list"></div></div></div>
+  </section>
+</section>
+</main>
+<script src="admin.js"></script></body></html>
