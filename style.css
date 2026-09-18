@@ -181,3 +181,6 @@ main{max-width:900px;padding:10px}
   .fm-competition-head{padding:9px 9px}
   .fm-competition-head strong{font-size:11px}
 }
+
+/* Upendo Cup — all matches mobile list */
+.upendo-all-matches{display:grid;gap:8px;margin-top:12px}.upendo-match-card{display:block;text-decoration:none;color:inherit;border:1px solid #e3e7ed;border-radius:12px;background:#fff;padding:10px 11px}.upendo-match-no{display:block;font-size:10px;font-weight:800;color:#7a8493;margin-bottom:5px}.upendo-match-main{display:grid;grid-template-columns:1fr 58px 1fr;gap:8px;align-items:center}.upendo-match-main b{font-size:13px}.upendo-match-main b:last-child{text-align:right}.upendo-match-main strong{text-align:center;font-size:15px}.upendo-match-card small{display:block;margin-top:6px;color:#7a8493;font-size:10px}.match-table-details{margin-top:12px}.match-table-details summary{cursor:pointer;font-weight:800;font-size:12px;padding:9px 0}@media(max-width:600px){.upendo-match-main{grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr)}.upendo-match-main b{font-size:12px}}
