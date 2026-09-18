@@ -41,7 +41,7 @@ function render(){
   if(sel&&btn){sel.onchange=update;btn.onclick=()=>{if(sel.value)openLeague(sel.value)};update()}
 }
 function openLeague(id){location.href='competition.html?id='+encodeURIComponent(id)}
-function setupStatsSelector(){const select=document.getElementById('statsCompetition'),button=document.getElementById('openSelectedStats');if(!select||!button)return;const leagues=getLeagues();select.innerHTML='<option value="">— Chagua ligi —</option>'+leagues.map((l,i)=>`<option value="${esc(l.sourceCompetitionId||l.id||i)}">${esc(l.name)} • ${esc(l.season||'')}</option>`).join('');select.onchange=()=>{button.disabled=select.value==='';if(select.value!=='')loadHomeStats(leagues[Number(select.value)]);else showHomeStatsMessage('Chagua ligi ili kuona takwimu zake hapa.')};button.onclick=()=>{if(select.value!=='')location.href=`competition.html?id=${encodeURIComponent(select.value)}#stats`}}
+function setupStatsSelector(){const select=document.getElementById('statsCompetition'),button=document.getElementById('openSelectedStats');if(!select||!button)return;const leagues=getLeagues();select.innerHTML='<option value="">— Chagua ligi —</option>'+leagues.map((l,i)=>`<option value="${esc(l.sourceCompetitionId||l.id||i)}">${esc(l.name)} • ${esc(l.season||'')}</option>`).join('');select.onchange=()=>{button.disabled=select.value==='';if(select.value!==''){const l=leagues.find(x=>String(x.sourceCompetitionId||x.id||'')===String(select.value));if(l)loadHomeStats(l);else showHomeStatsMessage('Ligi haikupatikana.')}else showHomeStatsMessage('Chagua ligi ili kuona takwimu zake hapa.')};button.onclick=()=>{if(select.value!=='')location.href=`competition.html?id=${encodeURIComponent(select.value)}#stats`}}
 
 function statsCss(){if(document.getElementById('homeStatsCss'))return;const s=document.createElement('style');s.id='homeStatsCss';s.textContent='.home-stats{margin-top:12px}.home-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.home-stat-card{border:1px solid #e1e6ee;border-radius:12px;background:#fff;padding:12px}.home-stat-title{font-size:11px;font-weight:900;color:#697487;text-transform:uppercase;margin-bottom:9px}.home-stat-values{display:grid;grid-template-columns:1fr 45px 1fr;align-items:center;text-align:center;gap:5px}.home-stat-values b{font-size:16px}.home-stat-values span{display:block;font-size:10px;color:#8791a0}.home-stat-bar{height:6px;background:#edf0f3;border-radius:99px;overflow:hidden;display:flex;margin-top:9px}.home-stat-bar i{height:100%;display:block}.home-stat-bar i:first-child{background:#1473e6}.home-stat-bar i:last-child{background:#7c8797}.home-stat-note{font-size:12px;color:#697487;margin:8px 0}.home-stat-table{margin-top:12px;overflow-x:auto;border:1px solid #e1e6ee;border-radius:10px}.home-stat-table table{min-width:420px}@media(max-width:650px){.home-stat-grid{grid-template-columns:1fr}}';document.head.appendChild(s)}
 function showHomeStatsMessage(msg){const h=document.getElementById('homeStats');if(h)h.innerHTML='<div class="empty">'+esc(msg)+'</div>'}
@@ -102,6 +102,50 @@ const notificationStateKey='afrn_notification_match_state';
 function notificationPrefs(){return{enabled:localStorage.getItem('afrn_notifications_enabled')!=='0',goals:localStorage.getItem('afrn_goal_alerts')!=='0',starts:localStorage.getItem('afrn_match_start_alerts')!=='0'}}
 function notifyFootball(title,body,url){if(!('Notification'in window)||Notification.permission!=='granted')return;try{const n=new Notification(title,{body,tag:'afrn-football'});n.onclick=()=>{try{window.focus();if(url)location.href=url}catch(e){}}}catch(e){}}
 async function checkFootballNotifications(){const p=notificationPrefs();if(!p.enabled||(!p.goals&&!p.starts)||!('Notification'in window)||Notification.permission!=='granted')return;try{const rows=await supa('matches?select=id,competition_id,home_team_id,away_team_id,match_date,match_time,home_score,away_score,status,venue&order=match_date,match_time');const clubs=await supa('clubs?select=id,name,short_name');const names=Object.fromEntries(clubs.map(c=>[String(c.id),c.name||c.short_name||'Timu']));const followed=new Set([...getFollowed(),...getFollowedCompetitions()].map(String));let state={};try{state=JSON.parse(localStorage.getItem(notificationStateKey)||'{}')}catch(e){};const next={};rows.forEach(m=>{const id=String(m.id),h=String(m.home_team_id),a=String(m.away_team_id),key=m.competition_id?String(m.competition_id):'',followedMatch=followed.has(h)||followed.has(a)||followed.has(key),hs=m.home_score==null?null:Number(m.home_score),as=m.away_score==null?null:Number(m.away_score),prev=state[id]||{};next[id]={home:hs,away:as,status:String(m.status||'').toLowerCase()};if(!followedMatch)return;const hn=names[h]||'Nyumbani',an=names[a]||'Ugenini';if(p.goals&&prev.home!=null&&hs!=null&&hs>prev.home)notifyFootball('⚽ Goli — '+hn,hn+' '+hs+' - '+as+' '+an,'match.html?id='+encodeURIComponent(id));if(p.goals&&prev.away!=null&&as!=null&&as>prev.away)notifyFootball('⚽ Goli — '+an,hn+' '+hs+' - '+as+' '+an,'match.html?id='+encodeURIComponent(id));const live=['live','in_progress','playing','1h','2h'].includes(String(m.status||'').toLowerCase());if(p.starts&&live&&!['live','in_progress','playing','1h','2h'].includes(String(prev.status||'')))notifyFootball('🔴 Mechi imeanza',hn+' vs '+an,'match.html?id='+encodeURIComponent(id))});localStorage.setItem(notificationStateKey,JSON.stringify(next))}catch(e){console.warn('Notification check failed',e)}}
+
+async function loadMatchFeed(view='today'){
+  const feed=document.getElementById('matchFeed'),status=document.getElementById('matchStatus'),title=document.getElementById('matchTitle');
+  if(!feed)return;
+  const titles={today:'Mechi za Leo',yesterday:'Mechi za Jana',tomorrow:'Mechi za Kesho',all:'Mechi Zote'};
+  if(title)title.textContent=titles[view]||'Mechi';
+  if(status)status.textContent='Inapakia...';
+  feed.innerHTML='<div class="empty">⏳ Inapakia...</div>';
+  try{
+    const [matches,clubs]=await Promise.all([
+      supa('matches?select=id,competition_id,home_team_id,away_team_id,match_date,match_time,home_score,away_score,status,venue,match_number&order=match_date,match_time&limit=300'),
+      supa('clubs?select=id,name,short_name,logo_url')
+    ]);
+    const names=Object.fromEntries(clubs.map(c=>[String(c.id),c]));
+    const now=new Date();
+    const local=(offset)=>{const d=new Date(now);d.setDate(d.getDate()+offset);return d.toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'})};
+    const day=view==='all'?null:view==='today'?local(0):view==='yesterday'?local(-1):local(1);
+    const rows=(matches||[]).filter(m=>!day||String(m.match_date||'').slice(0,10)===day);
+    if(!rows.length){feed.innerHTML='<div class="empty">Hakuna mechi kwa siku hii.</div>';if(status)status.textContent='0 mechi';return;}
+    feed.innerHTML=rows.map(m=>{
+      const h=names[String(m.home_team_id)]||{},a=names[String(m.away_team_id)]||{};
+      const hs=m.home_score==null?'—':m.home_score,as=m.away_score==null?'—':m.away_score;
+      const st=String(m.status||'').toLowerCase(),live=['live','in_progress','playing','1h','2h'].includes(st);
+      return '<a class="match-row" href="match.html?id='+encodeURIComponent(m.id)+'"><span class="match-team">'+esc(h.name||h.short_name||'Nyumbani')+'</span><strong class="match-score">'+hs+' - '+as+'</strong><span class="match-team away">'+esc(a.name||a.short_name||'Ugenini')+'</span><small class="match-time">'+esc(m.match_time||m.status||'')+'</small></a>';
+    }).join('');
+    if(status)status.textContent=rows.length+' mechi';
+  }catch(e){
+    console.error('Match feed failed:',e);
+    feed.innerHTML='<div class="empty">Data za mechi hazikupatikana kwa sasa.</div>';
+    if(status)status.textContent='Jaribu tena';
+  }
+}
+async function loadLiveStrip(){
+  const box=document.getElementById('liveStrip');if(!box)return;
+  try{
+    const [matches,clubs]=await Promise.all([
+      supa('matches?select=id,home_team_id,away_team_id,home_score,away_score,status&limit=300'),
+      supa('clubs?select=id,name,short_name')
+    ]);
+    const names=Object.fromEntries(clubs.map(c=>[String(c.id),c.name||c.short_name||'Timu']));
+    const live=(matches||[]).filter(m=>['live','in_progress','playing','1h','2h'].includes(String(m.status||'').toLowerCase()));
+    box.innerHTML=live.length?live.map(m=>'<a href="match.html?id='+encodeURIComponent(m.id)+'" class="live-pill">🔴 '+esc(names[String(m.home_team_id)]||'Nyumbani')+' '+(m.home_score??0)+' - '+(m.away_score??0)+' '+esc(names[String(m.away_team_id)]||'Ugenini')+'</a>').join(''):'';
+  }catch(e){console.warn('Live strip failed:',e);box.innerHTML=''}
+}
 
 // PWA install
 let deferredInstallPrompt=null;
