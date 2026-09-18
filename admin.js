@@ -76,7 +76,9 @@ async function addEvent(){
   $('addEvent').disabled=true;msgEvent('Inahifadhi...');
   try{
     const d=scoringDelta(type,club,m.home_team_id,m.away_team_id);
-    const finalDescription=type==='substitution'?'OUT: '+outPlayer+' → IN: '+inPlayer+(description?' • '+description:''):description;
+    const outName=$('eventPlayerOut').selectedOptions[0]?.textContent?.trim()||'Mchezaji';
+    const inName=$('eventPlayerIn').selectedOptions[0]?.textContent?.trim()||'Mchezaji';
+    const finalDescription=type==='substitution'?'OUT: '+outName+' → IN: '+inName+(description?' • '+description:''):description;
     await api('match_events',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({match_id:id,event_type:type,minute:Math.round(minute),description:finalDescription,player_id:type==='substitution'?inPlayer:(player||null),club_id:club})});
     if(d.home||d.away)await adjustMatchScore(id,d.home,d.away);
     $('eventDescription').value='';$('eventMinute').value='';$('eventPlayer').value='';$('eventPlayerOut').value='';$('eventPlayerIn').value='';msgEvent(d.home||d.away?'✅ Tukio limehifadhiwa na score imesasishwa.':'✅ Tukio limehifadhiwa.');
