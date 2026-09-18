@@ -31,14 +31,15 @@ async function load(){
   try{shots=await api(`match_shots?player_id=eq.${encodeURIComponent(id)}&select=id,match_id,shot_type,xg,minute,description&order=minute.asc,created_at.asc`)}catch(e){}
   try{contracts=await api(`player_contracts?player_id=eq.${encodeURIComponent(id)}&select=id,club_id,contract_number,start_date,end_date,status,league_name,loan_type,registration_type,from_club_id,transfer_id,notes&order=start_date.desc.nullslast,created_at.desc`)}catch(e){}
   try{transfers=await api(`transfers?player_id=eq.${encodeURIComponent(id)}&select=id,from_club_id,to_club_id,transfer_date,transfer_number,status,transfer_type,loan_end_date,contract_start_date,contract_end_date,contract_years,notes&order=transfer_date.desc.nullslast,created_at.desc`)}catch(e){}
-  try{lineups=await api(`match_lineups?player_id=eq.${encodeURIComponent(id)}&select=match_id,club_id,shirt_number,position,starter,captain,goalkeeper,substitute,entered_minute,left_minute&order=created_at.desc`)}catch(e){}
+  // match_lineups uses legacy bigint IDs while players.id is UUID; do not query it with a UUID.
+  // Lineup records will be linked when a valid UUID-compatible mapping is available.
+  lineups=[];
 
-  const matchIds=[...new Set([...events.map(e=>e.match_id),...shots.map(s=>s.match_id),...lineups.map(l=>l.match_id)].filter(Boolean))];
+  const matchIds=[...new Set([...events.map(e=>e.match_id),...shots.map(s=>s.match_id)].filter(Boolean))];
   let matches=[];
   if(matchIds.length){try{matches=await api(`matches?id=in.(${matchIds.map(encodeURIComponent).join(',')})&select=id,home_team_id,away_team_id,match_date,match_time,venue,home_score,away_score,status,competition_id&order=match_date.desc`)}catch(e){}}
   const matchById=Object.fromEntries(matches.map(m=>[m.id,m]));
-  const appearanceIds=new Set(lineups.map(l=>l.match_id).filter(Boolean));
-  events.forEach(e=>{if(e.match_id)appearanceIds.add(e.match_id)});
+  const appearanceIds=new Set(events.map(e=>e.match_id).filter(Boolean));
   const goals=events.filter(e=>['goal','goals','goal_scored'].includes(etype(e))).length;
   const assists=events.filter(e=>etype(e).includes('assist')).length;
   const yellow=events.filter(e=>etype(e).includes('yellow')).length;
@@ -79,7 +80,7 @@ async function load(){
   <section id="overview" class="card"><h2>👤 Wasifu</h2><div class="stats-list"><div><span>Jina</span><b>${esc(name)}</b></div><div><span>Timu</span><b>${currentClub?`<a class="inline-link" href="team.html?id=${encodeURIComponent(currentClub.id)}">${esc(clubName)}</a>`:esc(clubName)}</b></div><div><span>Division</span><b>${esc(division)}</b></div><div><span>Nafasi</span><b>${esc(position)}</b></div><div><span>Namba</span><b>${esc(number)}</b></div><div><span>Status</span><b>${esc(p.status||'—')}</b></div></div></section>
   <section id="stats" class="card"><h2>📊 Utendaji</h2><div class="quick-grid"><div><b>${appearanceIds.size}</b><span>Appearances</span></div><div><b>${goals}</b><span>Goals</span></div><div><b>${assists}</b><span>Assists</span></div><div><b>${yellow}</b><span>Yellow</span></div><div><b>${red}</b><span>Red</span></div><div><b>${shots.length}</b><span>Shots</span></div><div><b>${shotsOnTarget}</b><span>On target</span></div><div><b>${xg.toFixed(2)}</b><span>xG</span></div></div><div class="info">Takwimu hutokana na data iliyorekodiwa na AFRN; hakuna rating au takwimu za kubuniwa.</div></section>
   <section id="matches" class="card"><div class="section-head"><h2>📅 Mechi</h2><span class="event-count">${matches.length}</span></div>${matchRows||'<div class="empty">Hakuna mechi iliyounganishwa na mchezaji huyu bado.</div>'}</section>
-  <section id="lineups" class="card"><div class="section-head"><h2>👥 Lineups</h2><span class="event-count">${lineups.length}</span></div>${lineupRows||'<div class="empty">Hakuna rekodi ya lineup iliyopatikana bado.</div>'}</section>
+  <section id="lineups" class="card"><div class="section-head"><h2>👥 Lineups</h2></div><div class="empty">Lineup ya mchezaji itaonekana hapa pindi AFRN itakapokuwa na rekodi inayounganishwa moja kwa moja na Player ID ya UUID.</div></section>
   <section id="events" class="card"><h2>⚽ Match Events</h2>${eventRows||'<div class="empty">Hakuna event iliyorekodiwa kwa mchezaji huyu bado.</div>'}</section>
   <section id="shots" class="card"><h2>🎯 Shots</h2><div class="quick-grid"><div><b>${shots.length}</b><span>Total shots</span></div><div><b>${shotGoals}</b><span>Goals</span></div><div><b>${shotsOnTarget}</b><span>On target</span></div><div><b>${xg.toFixed(2)}</b><span>xG</span></div></div>${shotRows||'<div class="empty">Hakuna shot iliyorekodiwa kwa mchezaji huyu bado.</div>'}</section>
   <section id="history" class="card"><h2>📚 Historia</h2><h3>📄 Contracts</h3>${contractRows||'<div class="empty">Hakuna mkataba uliounganishwa na mchezaji huyu.</div>'}<h3 style="margin-top:18px">🔄 Transfers</h3>${transferRows||'<div class="empty">Hakuna transfer iliyorekodiwa kwa mchezaji huyu.</div>'}</section>`;
