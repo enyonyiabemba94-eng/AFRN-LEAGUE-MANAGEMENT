@@ -100,7 +100,7 @@ async function loadLeague(){
  <section id="scorers" class="card"><h2>⚽ Wafungaji</h2><div class="stats-list">${competitionEventRows(leagueEvents,players,clubs,"goals")}</div></section>
  <section id="cards" class="card"><h2>🟨 🟥 Kadi</h2><div class="quick-grid"><div><b>${yellows}</b><span>Yellow</span></div><div><b>${leagueEvents.filter(e=>eventKind(e.event_type)==="red").length}</b><span>Red</span></div></div><div class="stats-list">${competitionEventRows(leagueEvents,players,clubs,"yellow")}${competitionEventRows(leagueEvents,players,clubs,"red")}</div></section>
  <section id="stats" class="card"><h2>📈 Statistics za Timu</h2>${c.sourceCompetitionId?teamStatistics(leagueMatches,matchStats,clubs):'<div class="empty">Takwimu za kina zitaonekana baada ya match_statistics kuingizwa.</div>'}</section>
- <section id="history" class="card"><h2>📚 Historia</h2><div class="empty">Historia ya ${esc(c.name)} itawekwa hapa.</div></section>`);
+ <section id="history" class="card"><h2>📚 Historia</h2><div class="history-grid"><div><b>Mashindano</b><span>${esc(c.name)}</span></div><div><b>Msimu</b><span>${esc(c.season||"—")}</span></div><div><b>Timu</b><span>${dbTeams.length}</span></div><div><b>Mechi</b><span>${leagueMatches.length}</span></div></div><p class="muted">Historia inaonyesha data iliyorekodiwa kwa mashindano haya na msimu huu.</p></section>`);
  bindFixtureFilters();
 }
 function divisionOf(l){return l?.division||l?.name||''}
