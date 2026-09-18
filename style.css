@@ -43,3 +43,59 @@
 /* AFRN account / auth */
 .auth-main{max-width:560px;padding-top:28px}.auth-shell{background:#fff;border-radius:18px;padding:24px;box-shadow:0 4px 20px #0000000b}.auth-brand{display:flex;flex-direction:column;gap:5px;margin-bottom:22px;font-size:18px}.auth-brand span{font-size:11px;color:#788394}.auth-shell h1{margin:0 0 6px;font-size:25px}.auth-shell form label{display:block;font-weight:800;margin:15px 0}.auth-shell input{display:block;width:100%;padding:13px;margin-top:7px;border:1px solid #ccd3df;border-radius:10px;font-size:16px}.auth-shell form button{width:100%;margin-top:5px}.auth-link{display:block;width:100%;border:0;background:transparent;color:#1473e6;padding:12px;margin-top:5px;font-weight:800}.auth-message{padding:11px 12px;border-radius:9px;margin-bottom:15px;font-size:13px}.auth-message.success{background:#e9f7ee;color:#176b3a}.auth-message.error{background:#fff0f0;color:#a61b1b}.account-avatar{font-size:48px;margin-bottom:8px}.account-actions{display:grid;gap:8px;margin-top:18px}.account-actions a{text-align:center;text-decoration:none}.account-actions button{width:100%}@media(max-width:600px){.auth-main{padding:12px}.auth-shell{padding:18px;border-radius:14px}}
 .account-preferences{margin-top:20px;padding:14px;border:1px solid #e2e6ed;border-radius:12px;background:#f8fafc}.account-preferences h3{margin:0 0 10px;font-size:15px}.pref-switch{display:flex!important;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e7ebf0;font-size:13px}.pref-switch:last-of-type{border-bottom:0}.pref-switch input{width:20px!important;height:20px;margin:0!important}.account-preferences button{width:100%;margin-top:9px}
+/* ===== AFRN FOOTBALL CENTRE — FotMob-inspired final mobile UI ===== */
+:root{--fc-blue:#0b2347;--fc-accent:#1473e6;--fc-bg:#f2f4f7;--fc-line:#e3e7ec}
+body{background:var(--fc-bg);font-family:Arial,Helvetica,sans-serif}
+.topbar{height:56px;background:var(--fc-blue);padding:0 12px}
+.topbar .brand{font-size:20px}
+.topnav{height:42px;gap:18px;padding:0 12px;box-shadow:0 1px 3px #0001}
+main{max-width:900px;padding:10px}
+.hero-fm{background:var(--fc-blue);border-radius:10px;padding:14px;margin-bottom:8px}
+.hero-fm h1{font-size:21px;margin:3px 0}
+.hero-fm p{font-size:11px}
+.quick-tabs{border-radius:8px;padding:3px;margin-bottom:8px;box-shadow:none;border:1px solid var(--fc-line)}
+.quick{padding:8px 12px;font-size:11px;font-weight:900}
+.quick.active{background:#e8f1ff}
+.card,.competition-card{border:1px solid var(--fc-line);box-shadow:none;border-radius:9px}
+.card{padding:11px}
+.section-head{margin:10px 0 7px}
+.section-head h2{font-size:15px}
+.eyebrow{font-size:9px}
+.match-dashboard{padding:0;overflow:hidden}
+.match-dashboard .section-head{padding:8px 10px;margin:0;background:#fff;border-bottom:1px solid var(--fc-line)}
+.match-feed{background:#fff}
+.fixture-list{border:0;border-radius:0}
+.match-row-link{padding:9px 10px;min-height:52px}
+.match-row-link:hover{background:#f7faff}
+.competition-grid{gap:7px}
+.competition-card{padding:11px}
+.comp-title{font-size:14px}
+.comp-meta{font-size:10px}
+.score-row{padding:9px 0;margin:8px 0}
+.modules{gap:4px}
+.module{padding:7px;font-size:10px}
+.stats-strip{gap:5px;margin:8px 0}
+.stats-strip div,.stats-strip a{padding:9px;border-radius:8px}
+.stats-strip b{font-size:17px}
+.stats-strip span{font-size:9px}
+.bottom-nav{height:56px}
+.bottom-nav a b{font-size:17px}
+@media(max-width:600px){
+ body{padding-bottom:60px}
+ main{padding:7px}
+ .topbar{height:52px}
+ .topnav{display:none}
+ .hero-fm{border-radius:0;margin:-7px -7px 7px;padding:12px}
+ .hero-fm h1{font-size:19px}
+ .hero-fm p{font-size:10px}
+ .hero-fm button{margin-top:8px;padding:9px}
+ .quick-tabs{margin-bottom:7px}
+ .quick{padding:7px 10px}
+ .card{padding:9px;border-radius:9px}
+ #competitions>.section-head{margin-top:10px}
+ .competition-card{padding:10px}
+ .match-row-link{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);padding:9px 8px}
+ .match-row-link b{font-size:11px}
+ .match-row-link small{font-size:8px}
+ .team-preview{grid-template-columns:1fr 1fr}
+}
