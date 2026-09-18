@@ -105,5 +105,14 @@ async function loadLeague(){
 }
 function divisionOf(l){return l?.division||l?.name||''}
 async function resolveCompetition(){if(c||!rawId)return;c=await api('competitions?select=id,name,competition_type,season,status,logo_url&id=eq.'+encodeURIComponent(rawId)).then(x=>x[0]?{source:'supabase',sourceCompetitionId:x[0].id,name:x[0].name,season:x[0].season||'',division:x[0].name,logo_url:x[0].logo_url||''}:null).catch(()=>null)}
-async function render(){await resolveCompetition();if(!c){app.innerHTML='<div class="empty">Mashindano hayajapatikana.</div>';return}if(String(c.sourceCompetitionId||'')===UPENDO_ID||String(c.name).toLowerCase().includes('upendo')){try{await loadUpendo()}catch(e){app.innerHTML=`<div class="empty">❌ Imeshindikana kuonyesha data ya Upendo wa Wakimbizi Cup.<br>${esc(e.message)}</div>`}return}await loadLeague()}
+async function render(){
+  await resolveCompetition();
+  if(!c && rawId===UPENDO_ID){c={source:'supabase',sourceCompetitionId:UPENDO_ID,name:'UPENDO WA WAKIMBIZI CUP',season:'2026',division:'Daraja la I'};}
+  if(!c){app.innerHTML='<div class="empty">Mashindano hayajapatikana.</div>';return}
+  if(String(c.sourceCompetitionId||'')===UPENDO_ID||String(c.name).toLowerCase().includes('upendo')){
+    try{await loadUpendo()}catch(e){console.error(e);app.innerHTML=`<div class="empty">❌ Imeshindikana kuonyesha data ya Upendo wa Wakimbizi Cup.<br>${esc(e.message)}</div>`}
+    return
+  }
+  await loadLeague()
+}
 render();
