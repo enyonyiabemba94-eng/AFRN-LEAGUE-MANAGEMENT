@@ -39,6 +39,7 @@ async function loadUpendo(){
  ]);
  const names=Object.fromEntries(clubs.map(x=>[x.id,x.name]));
  const groups={};ct.forEach(x=>(groups[x.group_name]??=[]).push(x.club_id));
+ const leagueMatches=matches;
  const matchesHtml=matches.map(m=>`<tr><td>${m.match_number??'—'}</td><td colspan="2">${matchLink(m,names[m.home_team_id]||m.home_team_id,names[m.away_team_id]||m.away_team_id)}</td><td>${esc(m.match_date||'—')}</td><td>${esc(m.venue||'—')}</td><td>${esc(stage(m.notes))}</td></tr>`).join('');
  const ko=matches.filter(m=>/^(R16|QF|SF|THIRD|FINAL)/.test(stage(m.notes)));
  const koHtml=ko.length?ko.map(m=>`<tr><td>${esc(stage(m.notes))}</td><td colspan="2">${matchLink(m,names[m.home_team_id]||m.home_team_id,names[m.away_team_id]||m.away_team_id)}</td><td>${esc(m.status||'—')}</td></tr>`).join(''):'<tr><td colspan="4">Hakuna mechi za mtoano zilizorekodiwa.</td></tr>';
