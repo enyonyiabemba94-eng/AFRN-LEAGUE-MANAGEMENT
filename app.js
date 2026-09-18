@@ -57,27 +57,25 @@ async function supa(path,options={}){const r=await fetch(SUPABASE_URL+'/rest/v1/
 async function syncLeagues(){
   try{
     const db=await supa('competitions?select=id,name,competition_type,season,start_date,end_date,status,logo_url,organizer&order=created_at');
+    const ids=db.map(x=>String(x.id));
     let ct=[],matches=[];
-    try{ct=await supa('competition_teams?select=competition_id,club_id&limit=5000')}catch(e){console.warn('Competition teams sync failed',e)}
-    try{matches=await supa('matches?select=id,competition_id,match_date,match_time&limit=5000')}catch(e){console.warn('Competition matches sync failed',e)}
+    if(ids.length){
+      const inIds='('+ids.join(',')+')';
+      try{ct=await supa('competition_teams?select=competition_id,club_id&competition_id=in.'+encodeURIComponent(inIds))}catch(e){console.warn('Competition teams sync failed',e)}
+      try{matches=await supa('matches?select=id,competition_id,match_date,match_time&competition_id=in.'+encodeURIComponent(inIds))}catch(e){console.warn('Competition matches sync failed',e)}
+    }
     const teamCounts={},matchCounts={};
     ct.forEach(x=>{const k=String(x.competition_id);teamCounts[k]??=new Set();teamCounts[k].add(String(x.club_id))});
-    matches.forEach(x=>{const k=String(x.competition_id||'');if(k){matchCounts[k]=(matchCounts[k]||0)+1}});
+    matches.forEach(x=>{const k=String(x.competition_id||'');if(k)matchCounts[k]=(matchCounts[k]||0)+1});
     const current=JSON.parse(localStorage.getItem(leagueKey)||'[]');
-    const base=current.length?current:defaults;
     const synced=db.map(x=>{
       const old=current.find(l=>String(l.sourceCompetitionId||'')===String(x.id)||String(l.name||'').toLowerCase()===String(x.name||'').toLowerCase());
       const isTournament=/tournament|cup|group\\s*stage|knockout/i.test(String(x.competition_type||''));
       const key=String(x.id);
-      return {
-        name:x.name,type:isTournament?'Tournament':'League',
-        division:old?.division||x.name,season:x.season||old?.season||'2026/2027',
-        teams:old?.teams||[],source:'supabase',sourceCompetitionId:x.id,
-        logo_url:x.logo_url||'',teamCount:teamCounts[key]?.size||0,
-        matchCount:matchCounts[key]||0
-      };
+      return {name:x.name,type:isTournament?'Tournament':'League',division:old?.division||x.name,season:x.season||old?.season||'2026/2027',teams:old?.teams||[],source:'supabase',sourceCompetitionId:x.id,logo_url:x.logo_url||'',teamCount:teamCounts[key]?.size||0,matchCount:matchCounts[key]||0};
     });
     const dbNames=new Set(synced.map(x=>String(x.name||'').toLowerCase()));
+    const base=current.length?current:defaults;
     const preserved=base.filter(x=>!dbNames.has(String(x.name||'').toLowerCase()));
     const merged=[...preserved,...synced];
     localStorage.setItem(leagueKey,JSON.stringify(merged));
