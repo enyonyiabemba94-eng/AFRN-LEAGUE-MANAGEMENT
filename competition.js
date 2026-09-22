@@ -80,21 +80,19 @@ async function loadLeague(){
  // Ikiwa competition_teams bado haijasajiliwa, usizuie mechi rasmi za competition hii.
  // Mechi zenye competition_id husika ndizo chanzo cha kwanza cha ratiba/matokeo.
  const matchTeamIds=new Set(matches.flatMap(m=>[String(m.home_team_id),String(m.away_team_id)]));
- const effectiveTeamIds=hasRegisteredTeams?registeredIds:matchTeamIds;
+ const effectiveTeamIds=new Set([...registeredIds,...matchTeamIds]);
  const dbTeams=c.sourceCompetitionId
    ?clubs.filter(x=>effectiveTeamIds.has(String(x.id)))
    :clubs.filter(x=>!c.division||c.division==='Open'||x.division===c.division);
  const leagueMatches=c.sourceCompetitionId
-   ?(hasRegisteredTeams
-      ?matches.filter(m=>registeredIds.has(String(m.home_team_id))&&registeredIds.has(String(m.away_team_id)))
-      :matches)
+   ?matches
    :matches;
  const leagueMatchIds=new Set(leagueMatches.map(m=>String(m.id)));
  const leagueEvents=c.sourceCompetitionId
    ?events.filter(e=>leagueMatchIds.has(String(e.match_id)))
    :events;
  const sourceTeamIds=c.sourceCompetitionId
-   ?[...registeredIds]
+   ?[...effectiveTeamIds]
    :teams.map(t=>String(t.id));
  const rows=c.sourceCompetitionId?aggregateStandings(leagueMatches,sourceTeamIds):teams.map(t=>({club_id:t.id,played:t.P||0,wins:t.W||0,draws:t.D||0,losses:t.L||0,goals_for:t.GF||0,goals_against:t.GA||0,points:t.Pts||0,yellow_cards:0,red_cards:0}));
  const table=rows.length?standingsTable(rows,names):'<div class="empty">Hakuna timu iliyosajiliwa katika daraja hili bado.</div>';
