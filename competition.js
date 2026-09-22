@@ -10,7 +10,7 @@ const SUPABASE_URL='https://jjqhvruppafpumcthmwe.supabase.co';
 const SUPABASE_KEY='sb_publishable_02hhRG8bgDOqSFxva8IMvQ_zWTLMa3G';
 const UPENDO_ID='3b55884e-05bc-4d83-832e-3addcd97d970';
 function esc(s){return String(s??'').replace(/[&<>\"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[x]))}
-async function api(path){const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});if(!r.ok)throw new Error('Supabase: '+r.status);return r.json()}
+async function api(path){const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{cache:'no-store',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});if(!r.ok)throw new Error('Supabase: '+r.status);return r.json()}
 function score(m){if(m.home_score==null||m.away_score==null)return '—';return `${m.home_score} - ${m.away_score}`}
 function stage(notes=''){const m=String(notes);const x=m.match(/AFRN_STAGE=([^|]+)/);if(x)return x[1];for(const g of ['A','B','C','D','E','F'])if(m.includes('Group '+g))return 'GROUP '+g;return 'GROUP STAGE'}
 function teamLink(id,name,meta=''){return `<a class="team-link-card" href="team.html?id=${encodeURIComponent(id)}"><b>${esc(name)}</b><small>${esc(meta)}</small></a>`}
@@ -35,7 +35,7 @@ async function loadUpendo(){
   safeApi('clubs?select=id,name,afrn_club_id,division,zone&order=name'),
   safeApi(`competition_teams?competition_id=eq.${UPENDO_ID}&select=club_id,group_name,created_at&order=group_name,created_at`),
   safeApi(`standings?competition_id=eq.${UPENDO_ID}&select=club_id,group_name,played,wins,draws,losses,goals_for,goals_against,points,yellow_cards,red_cards&order=group_name`),
-  api(`matches?competition_id=eq.${UPENDO_ID}&select=id,home_team_id,away_team_id,match_date,match_time,venue,home_score,away_score,status,match_number,notes,home_penalties,away_penalties&order=match_number,match_date`)
+  api(`matches?competition_id=eq.${UPENDO_ID}&select=id,home_team_id,away_team_id,match_date,match_time,venue,home_score,away_score,status,match_number,notes&order=match_number,match_date`)
  ]);
  const matchIds=new Set(matches.map(m=>String(m.id)));
  const [eventsRaw,players]=await Promise.all([
